@@ -120,7 +120,7 @@ document.addEventListener("click", (e) => {
       else window.open(url, "_blank", "noopener,noreferrer");
     } else
       showDetail(
-        `<p class="eyebrow">LET'S CONNECT</p><h2 id="dialog-title">${kind === "Email" ? "GET IN TOUCH." : kind.toUpperCase() + "."}</h2><p>Deniss's ${kind === "Email" ? "email address" : kind + " profile"} hasn't been added yet.</p><p>Check back soon for contact details and new project updates.</p>`,
+        `<p class="eyebrow">LET'S CONNECT</p><h2 id="dialog-title">${kind === "Email" ? "GET IN TOUCH." : kind.toUpperCase() + "."}</h2><p>Qwelskw's ${kind === "Email" ? "email address" : kind + " profile"} hasn't been added yet.</p><p>Check back soon for contact details and new project updates.</p>`,
       );
   }
 });
@@ -128,7 +128,7 @@ document
   .querySelector("#story-open")
   .addEventListener("click", () =>
     showDetail(
-      `<p class="eyebrow">ABOUT ME</p><h2 id="dialog-title">THOUGHTFUL BY DESIGN.</h2><p>I'm Deniss, a web developer based in Europe. I enjoy turning ideas into clear, useful digital experiences — from the first layout to the details of an interaction.</p><p>My interests span frontend development, interface design and backend systems. I work with HTML, CSS, JavaScript and Vue, and explore C# and .NET to connect the whole experience.</p><p>My approach is simple: understand the problem, build with intention and keep refining the details.</p>`,
+      `<p class="eyebrow">ABOUT ME</p><h2 id="dialog-title">THOUGHTFUL BY DESIGN.</h2><p>I'm Qwelskw, a web developer, designer and video maker based in Europe. I turn ideas into digital experiences and visual stories — from the first sketch to the final frame.</p><p>My work brings together three disciplines: building responsive websites, designing clear and expressive visuals, and shaping stories through video editing and motion. I approach each medium with the same attention to detail.</p><p>My approach is simple: understand the idea, choose the right medium and refine every detail — whether it is an interaction, a composition or a cut.</p>`,
     ),
   );
 document.querySelectorAll("dialog").forEach((dialog) => {
