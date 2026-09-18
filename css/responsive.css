@@ -559,3 +559,5 @@
     border-right: 0;
   }
 }
+/* Keep service descriptions readable in both languages on small screens. */
+@media(max-width:600px){.service p br{display:initial}}

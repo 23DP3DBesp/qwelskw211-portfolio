@@ -1,6 +1,6 @@
 # Generated imagery
 
-Created using the built-in imagegen tool. These are fictional editorial images, not photographs of Deniss.
+Created using the built-in imagegen tool. These are fictional editorial images, not photographs of Qwelskw.
 
 - `images/hero-person.png`: monochrome full-body developer, black jacket and trousers, closed laptop at side, relaxed three-quarter pose, transparent alpha background.
 - `images/about-person.jpg`: cinematic monochrome young developer working at laptop, gray studio wall, soft window light, landscape composition, subject on right.

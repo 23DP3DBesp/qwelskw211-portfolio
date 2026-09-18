@@ -1,8 +1,9 @@
 "use strict";
 // Replace these values when personal contact links are ready.
-const profile = { email: "", github: "", linkedin: "" };
+const profile = { telegram: "https://t.me/qwelskw211", email: "qwelskw211@gmail.com", github: "https://github.com/23DP3DBesp", instagram: "https://www.instagram.com/qwelskw211/" };
 const projects = [
   {
+    category: "web",
     name: "E-CATALOG",
     description: "AI powered product catalog",
     tech: ["Vue", "JavaScript", "Database", "AI"],
@@ -13,6 +14,7 @@ const projects = [
       "The proposed stack connects a Vue interface to a searchable product database and an AI-assisted discovery layer.",
   },
   {
+    category: "web",
     name: "MUSIC PLAYER",
     description: "Modern web music experience",
     tech: ["JavaScript", "API", "UI"],
@@ -23,6 +25,7 @@ const projects = [
       "The design explores playlist navigation, track discovery and accessible playback controls.",
   },
   {
+    category: "web",
     name: "WEB APPLICATION",
     description: "Full stack project",
     tech: ["C#", ".NET", "SQL"],
@@ -33,6 +36,7 @@ const projects = [
       "The proposed architecture uses a .NET API, C# business logic and a SQL data layer.",
   },
   {
+    category: "design",
     name: "EXPERIMENTS",
     description: "UI and frontend experiments",
     tech: ["HTML", "CSS", "JavaScript"],
@@ -43,34 +47,42 @@ const projects = [
       "Built around browser-native capabilities, responsive CSS and lightweight JavaScript.",
   },
 ];
-const paths = [
-  "M4 5h24v22H4zM4 11h24m-18 5-4 3 4 3m12-6 4 3-4 3",
-  "M5 4h22v24H5zM12 12v10c0 3-4 3-4 0m15-8c-5-4-9 3-3 5s2 8-3 5",
-  "m3 5 13 23L29 5h-6l-7 12L9 5z",
-  "M23 7a12 12 0 1 0 0 18M24 10v12m5-12v12m-8-8h11m-11 5h11",
-  "M4 25V7l12 18V7m6 0v18m-3-18h10",
-  "m16 2 14 14-14 14L2 16zM12 9v11m0-7 8 8M12 9a2 2 0 1 0 0 .1M12 21a2 2 0 1 0 0 .1M21 21a2 2 0 1 0 0 .1",
-];
+// Keep each icon next to its label so changing the order cannot mismatch them.
 const skills = [
-  ["HTML / CSS", "Structure & style"],
-  ["JAVASCRIPT", "Interactive experiences"],
-  ["VUE", "Modern web interfaces"],
-  ["C#", "Backend development"],
-  [".NET", "Web applications"],
-  ["GIT", "Version control"],
+  { title: "HTML / CSS / VUE", description: "Structure & style", icon: "web" },
+  { title: "JAVASCRIPT", description: "Interactive experiences", icon: "javascript" },
+  { title: "ADOBE PHOTOSHOP", description: "Visual design & editing", icon: "photoshop" },
+  { title: "ADOBE AFTER EFFECTS", description: "Motion graphics & video", icon: "after-effects" },
+  { title: "ADOBE LIGHTROOM", description: "Photo editing & color grading", icon: "lightroom" },
+  { title: "GIT", description: "Version control", icon: "git" },
 ];
 document.querySelector(".skills").innerHTML = skills
   .map(
-    (s, i) =>
-      `<div class="skill"><svg aria-hidden="true" viewBox="0 0 32 32"><path d="${paths[i]}"/></svg><div><h3>${s[0]}</h3><p>${s[1]}</p></div></div>`,
+    ({ title, description, icon }) =>
+      `<div class="skill"><img class="skill-icon" src="assets/icons/${icon}.svg" alt="" aria-hidden="true" width="28" height="28"><div><h3>${title}</h3><p>${description}</p></div></div>`,
   )
   .join("");
 document.querySelector("#project-grid").innerHTML = projects
   .map(
     (p, i) =>
-      `<article class="project-card"><div class="project-image"><img src="${p.image}" alt="${p.name} concept preview" loading="lazy"></div><div class="project-body"><span class="project-index">PROJECT 0${i + 1}</span><h3>${p.name}</h3><p>${p.description}</p><div class="project-tech">${p.tech.join(" / ")}</div><button data-project="${i}" aria-label="View ${p.name}">VIEW PROJECT <span>→</span></button></div></article>`,
+      `<article class="project-card" data-category="${p.category}"><div class="project-image"><img src="${p.image}" alt="${p.name} concept preview" loading="lazy"></div><div class="project-body"><span class="project-index">PROJECT 0${i + 1}</span><h3>${p.name}</h3><p>${p.description}</p><div class="project-tech">${p.tech.join(" / ")}</div><button data-project="${i}" aria-label="View ${p.name}">VIEW PROJECT <span>→</span></button></div></article>`,
   )
   .join("");
+const filterButtons = document.querySelectorAll("[data-filter]");
+function filterProjects(category) {
+  let count = 0;
+  document.querySelectorAll(".project-card").forEach(card => {
+    card.hidden = category !== "all" && card.dataset.category !== category;
+    if (!card.hidden) { count++; card.classList.add("is-visible"); }
+  });
+  filterButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === category)));
+  document.querySelector("#project-empty").hidden = count !== 0;
+  document.querySelector("#project-count").textContent = window.portfolioLanguage === "ru" ? `Работ: ${count}` : `Projects: ${count}`;
+}
+filterButtons.forEach(button => button.addEventListener("click", () => filterProjects(button.dataset.filter)));
+document.querySelector('.section-heading a').addEventListener('click', () => filterProjects('all'));
+document.addEventListener('languagechange', () => filterProjects(document.querySelector('[data-filter][aria-pressed="true"]').dataset.filter));
+filterProjects('all');
 const menu = document.querySelector(".menu-toggle"),
   nav = document.querySelector(".navigation");
 function closeMenu() {
@@ -154,7 +166,7 @@ function renderSearch() {
   const matches = projects
     .map((p, i) => ({ p, i }))
     .filter(({ p }) =>
-      [p.name, p.description, ...p.tech].join(" ").toLowerCase().includes(q),
+      [p.name, p.description, window.translatePortfolio(p.description), p.category, ...p.tech].join(" ").toLowerCase().includes(q),
     );
   document.querySelector("#search-results").innerHTML = matches.length
     ? matches
