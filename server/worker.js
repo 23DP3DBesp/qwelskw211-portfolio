@@ -116,6 +116,16 @@ async function handle(request,env){
  if(path==='/api/admin/copy-defaults'&&method==='GET')return json(copyDefaults);
  if(path==='/api/admin/session')return json({email:user.email});
  if(path==='/api/admin/projects'&&method==='GET'){const r=await stmt(env,'SELECT * FROM projects ORDER BY position,id').all();return json(r.results.map(r=>({...JSON.parse(r.data),revision:r.revision})));}
+ if(path==='/api/admin/projects'&&method==='DELETE'){
+ const value=await body(request,1000),id=text(value.id,80);
+ if(!idPattern.test(id)||!Number.isInteger(value.revision)||value.revision<1)fail('Некорректные данные проекта');
+ const prior=await stmt(env,'SELECT revision FROM projects WHERE id=?',id).first();
+ if(!prior)fail('Работа уже удалена. Обновите список.',404);
+ if(prior.revision!==value.revision)fail('Работа изменена в другой вкладке. Обновите страницу перед удалением.',409);
+ const deleted=await stmt(env,'DELETE FROM projects WHERE id=? AND revision=?',id,value.revision).run();
+ if(!deleted.meta.changes)fail('Работа изменилась. Обновите страницу перед удалением.',409);
+ return json({ok:true});
+ }
  if(path==='/api/admin/projects'&&method==='POST'){
  const value=await body(request),p=validateProject(value);const prior=await stmt(env,'SELECT revision FROM projects WHERE id=?',p.id).first();
  if(prior){if(value.revision!==prior.revision)fail('Changed in another tab. Reload first. / Изменено в другой вкладке. Обновите страницу.',409);

@@ -5,10 +5,28 @@ const statusLabels={draft:'Черновик',published:'Опубликован',
 const api=(path,options={})=>portfolioAPI('/api/admin/'+path,options);
 const notify=message=>$('#status').textContent=message;
 function field(name){return $('#project-form').elements.namedItem(name);}
-async function loadProjects(data){projects=data??await api('projects');$('#project-list').innerHTML=projects.length?projects.map(p=>`<article class="project-row"><img src="${esc(p.cover)}" alt=""><div><h3>${esc(p.title.ru||p.title.en||p.id)}</h3><small>${esc(p.category)} · порядок ${p.position}</small> <span class="badge">${statusLabels[p.status]}</span></div><button data-edit="${esc(p.id)}">Редактировать</button></article>`).join(''):'<p>Добавьте первую работу.</p>';}
+async function loadProjects(data){projects=data??await api('projects');$('#project-list').innerHTML=projects.length?projects.map(p=>`<article class="project-row"><img src="${esc(p.cover)}" alt=""><div><h3>${esc(p.title.ru||p.title.en||p.id)}</h3><small>${esc(p.category)} · порядок ${p.position}</small> <span class="badge">${statusLabels[p.status]}</span></div><div class="project-actions"><button data-edit="${esc(p.id)}">Редактировать</button><button type="button" class="danger" data-delete="${esc(p.id)}" aria-label="Удалить ${esc(p.title.ru||p.title.en||p.id)}">Удалить</button></div></article>`).join(''):'<p>Добавьте первую работу.</p>';}
 function showGallery(){$('#gallery-editor').innerHTML=gallery.map((url,i)=>`<div class="gallery-item"><img src="${esc(url)}" alt="Фото ${i+1}"><button type="button" data-remove="${i}">Убрать</button>${i?`<button type="button" data-up="${i}" aria-label="Переместить фото ${i+1} раньше">←</button>`:''}</div>`).join('');}
 function openEditor(p){editing=p||null;$('#project-form').reset();gallery=[...(p?.gallery||[])];for(const name of ['id','category','status','position','cover','video','link','tech'])field(name).value=p?.[name]??({category:'web',status:'draft',position:projects.length}[name]??'');for(const name of ['title','description','result'])for(const lang of ['en','ru'])field(`${name}_${lang}`).value=p?.[name]?.[lang]||'';field('concept').checked=!!p?.concept;field('id').readOnly=!!p;$('#editor-title').textContent=p?'Редактировать проект':'Новый проект';$('#cover-preview').hidden=!p?.cover;$('#cover-preview').src=p?.cover||'';$('#editor-status').textContent='';$('#preview-project').hidden=!p;$('#preview-project').href=p?`/work/?id=${encodeURIComponent(p.id)}&preview=1&lang=ru`:'#';showGallery();dirty=false;$('#editor').showModal();}
-$('#new-project').onclick=()=>openEditor();$('#project-list').onclick=e=>{const b=e.target.closest('[data-edit]');if(b)openEditor(projects.find(p=>p.id===b.dataset.edit));};
+$('#new-project').onclick=()=>openEditor();
+$('#project-list').onclick=async e=>{
+ const remove=e.target.closest('[data-delete]');
+ if(remove){
+  if(remove.disabled)return;
+  const project=projects.find(p=>p.id===remove.dataset.delete);if(!project)return;
+  const title=project.title.ru||project.title.en||project.id;
+  if(!confirm(`Удалить работу «${title}»? Она исчезнет с сайта и из списка проектов. Это действие нельзя отменить.`))return;
+  remove.disabled=true;remove.setAttribute('aria-busy','true');
+  try{
+   const result=await api('projects',{method:'DELETE',body:JSON.stringify({id:project.id,revision:project.revision})});
+   if(result.ok!==true)throw new Error('Сервер не подтвердил удаление. Обновите список.');
+   await loadProjects(projects.filter(p=>p.id!==project.id));notify(`Работа «${title}» удалена.`);
+  }catch(error){notify(error.message);}
+  finally{remove.disabled=false;remove.removeAttribute('aria-busy');}
+  return;
+ }
+ const edit=e.target.closest('[data-edit]');if(edit)openEditor(projects.find(p=>p.id===edit.dataset.edit));
+};
 function closeEditor(){if(uploading){$('#editor-status').textContent='Дождитесь загрузки файлов.';return;}if(dirty&&!confirm('Закрыть без сохранения изменений?'))return;$('#editor').close();}
 $('#close-editor').onclick=closeEditor;$('#editor').addEventListener('cancel',e=>{e.preventDefault();closeEditor();});$('#project-form').addEventListener('input',()=>dirty=true);
 $('#gallery-editor').onclick=e=>{const r=e.target.closest('[data-remove]'),u=e.target.closest('[data-up]');if(r)gallery.splice(Number(r.dataset.remove),1);if(u){const i=Number(u.dataset.up);[gallery[i-1],gallery[i]]=[gallery[i],gallery[i-1]];}if(r||u){dirty=true;showGallery();}};

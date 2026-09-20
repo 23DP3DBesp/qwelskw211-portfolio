@@ -3,3 +3,5 @@
 button[aria-busy="true"]{cursor:wait}
 
 .login-main{max-width:460px;padding-top:65px}.logout-form{display:inline-block;margin-left:12px}.logout-form button{color:inherit;border-color:#777}
+
+.project-row>.project-actions{flex:0 0 auto;display:flex;gap:8px;flex-wrap:wrap}.danger{color:#92251b;border-color:#b7675f}.danger:hover{background:#f4dcd8}

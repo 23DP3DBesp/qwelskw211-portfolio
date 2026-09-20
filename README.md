@@ -12,6 +12,8 @@ The legacy ChatGPT owner enrollment remains available only when no password hash
 
 ## Daily editing
 
+Use **Удалить** next to a project to permanently remove its record after confirmation. The server checks ownership, request origin, and the displayed revision. The public project list and total exclude deleted records. Uploaded image files are retained, so deleting one project cannot break another that uses the same image. Unreferenced uploads stay owner-private.
+
 - **Projects:** create a project, upload a cover and result images, add a YouTube/Vimeo video link, enter EN/RU text, choose Web/Design/Video and a sort number. Photos belong in Design.
 - **Draft / published / hidden:** drafts and hidden projects, including uploaded media only referenced by them, are restricted to the owner. Use the saved-preview link after saving. Smaller sort numbers appear first.
 - **Texts, services and contacts:** search original copy and edit both languages, or update Telegram, Instagram, GitHub and email.

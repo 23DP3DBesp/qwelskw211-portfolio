@@ -27,6 +27,17 @@ test('password login protects admin independently of ChatGPT headers',async()=>{
  const p={...projects[0],title:{...projects[0].title,en:'Password session save'}};
  assert.equal((await call('/api/admin/projects',{method:'POST',cookie,data:p})).status,200);
  assert.equal((await call('/api/admin/projects',{method:'POST',cookie,data:p,headers:{Origin:'https://evil.test'}})).status,403);
+ const deletion={id:p.id,revision:p.revision+1};
+ assert.equal((await call('/api/admin/projects',{method:'DELETE',data:deletion})).status,401);
+ assert.equal((await call('/api/admin/projects',{method:'DELETE',cookie,data:deletion,headers:{Origin:'https://evil.test'}})).status,403);
+ assert.equal((await call('/api/admin/projects',{method:'DELETE',cookie,data:{...deletion,revision:p.revision}})).status,409);
+ const beforeDelete=(await (await call('/api/content')).json()).projects.length;
+ assert.equal((await call('/api/admin/projects',{method:'DELETE',cookie,data:deletion})).status,200);
+ const remaining=(await (await call('/api/content')).json()).projects;
+ assert.equal(remaining.length,beforeDelete-1);assert.ok(!remaining.some(row=>row.id===p.id));
+ assert.equal((await call('/api/admin/projects/'+p.id,{cookie})).status,404);
+ assert.equal((await call('/api/admin/projects',{method:'POST',cookie,data:p})).status,409);
+ assert.equal((await call('/api/admin/projects',{method:'DELETE',cookie,data:deletion})).status,404);
  const logout=await call('/api/auth/logout',{method:'POST',cookie});assert.equal(logout.status,303);
  assert.equal((await call('/api/admin/projects',{cookie})).status,401);
 });
