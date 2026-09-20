@@ -14,7 +14,8 @@ globalThis.portfolioAPI = async function (path, options = {}) {
   } catch {
     throw new Error(message('Connection failed. Check your connection and reload the page to sign in again.', 'Не удалось подключиться. Проверьте интернет и обновите страницу для повторного входа.'));
   }
-  if (response.status === 401) throw new Error(message('Your session expired. Reload the page to sign in again.', 'Сессия истекла. Обновите страницу и войдите снова.'));
+  if (response.status === 401 && path !== '/api/auth/login') throw new Error(message('Your session expired. Reload the page to sign in again.', 'Сессия истекла. Обновите страницу и войдите снова.'));
+  if (typeof location !== 'undefined' && ['localhost','127.0.0.1'].includes(location.hostname) && location.port === '5500') throw new Error('Открыт статический сервер без базы данных. Запустите npm run dev и откройте http://127.0.0.1:4173.');
   if (!/^application\/(?:[\w.-]+\+)?json\b/i.test(response.headers.get('Content-Type') || '')) {
     throw new Error(message('The server returned a page instead of data. Reload the page and sign in again. If this persists, the service is unavailable.', 'Сервер вернул страницу вместо данных. Обновите страницу и войдите снова. Если ошибка повторяется, сервис недоступен.'));
   }

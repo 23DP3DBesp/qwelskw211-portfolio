@@ -1,0 +1,41 @@
+import {test,before,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {pbkdf2Sync,randomBytes,createHash} from 'node:crypto';
+import fs from 'node:fs/promises';
+import {Miniflare} from 'miniflare';
+let mf;
+const password='isolated-test-password-only',salt=randomBytes(16);
+const hash=`pbkdf2-sha256-100000:${salt.toString('hex')}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex')}`;
+const call=(path,{method='GET',data,cookie,headers={}}={})=>mf.dispatchFetch('https://portfolio.test'+path,{method,redirect:'manual',headers:{...(method!=='GET'?{Origin:'https://portfolio.test','Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...headers},body:data===undefined?undefined:JSON.stringify(data)});
+before(async()=>{
+ mf=new Miniflare({modules:true,scriptPath:'dist/server/index.js',d1Databases:['DB'],r2Buckets:['MEDIA'],bindings:{ADMIN_USERNAME:'admin',ADMIN_PASSWORD_HASH:hash},assets:{directory:'dist/client',binding:'ASSETS',routerConfig:{has_user_worker:true}}});
+ const db=await mf.getD1Database('DB');for(const name of (await fs.readdir('drizzle')).filter(n=>n.endsWith('.sql')).sort())for(const sql of (await fs.readFile('drizzle/'+name,'utf8')).split('--> statement-breakpoint').map(s=>s.trim()).filter(Boolean))await db.prepare(sql).run();
+});
+after(async()=>mf?.dispose());
+test('password login protects admin independently of ChatGPT headers',async()=>{
+ const anonymous=await call('/admin');assert.equal(anonymous.status,302);assert.equal(new URL(anonymous.headers.get('Location')).pathname,'/admin/login');
+ assert.equal((await call('/api/admin/projects')).status,401);
+ assert.equal((await call('/api/admin/projects',{headers:{'oai-authenticated-user-id':'owner','oai-authenticated-user-email':'owner@example.test'}})).status,403);
+ assert.equal((await call('/api/content')).status,200);
+ const page=await (await call('/admin/login')).text();assert.match(page,/autocomplete="current-password"/);assert.ok(!page.includes('signin-with-chatgpt'));
+ const foreign=await call('/api/auth/login',{method:'POST',data:{username:'admin',password},headers:{Origin:'https://evil.test'}});assert.equal(foreign.status,403);
+ const wrong=await call('/api/auth/login',{method:'POST',data:{username:'admin',password:'wrong'}});assert.equal(wrong.status,401);assert.match((await wrong.json()).error,/Неверный/);
+ const login=await call('/api/auth/login',{method:'POST',data:{username:'admin',password}});assert.equal(login.status,200);
+ const header=login.headers.get('Set-Cookie');assert.match(header,/HttpOnly/);assert.match(header,/Secure/);assert.match(header,/SameSite=Strict/);const cookie=header.split(';')[0];
+ const admin=await call('/admin',{cookie});assert.equal(admin.status,200);assert.match(await admin.text(),/action="\/api\/auth\/logout"/);
+ const projects=await (await call('/api/admin/projects',{cookie})).json();assert.ok(projects.length);
+ const p={...projects[0],title:{...projects[0].title,en:'Password session save'}};
+ assert.equal((await call('/api/admin/projects',{method:'POST',cookie,data:p})).status,200);
+ assert.equal((await call('/api/admin/projects',{method:'POST',cookie,data:p,headers:{Origin:'https://evil.test'}})).status,403);
+ const logout=await call('/api/auth/logout',{method:'POST',cookie});assert.equal(logout.status,303);
+ assert.equal((await call('/api/admin/projects',{cookie})).status,401);
+});
+test('expired and forged cookies cannot access admin; login attempts are limited',async()=>{
+ const login=await call('/api/auth/login',{method:'POST',data:{username:'admin',password},headers:{'CF-Connecting-IP':'192.0.2.1'}});assert.equal(login.status,200);
+ const cookie=login.headers.get('Set-Cookie').split(';')[0],token=cookie.split('=')[1];
+ const db=await mf.getD1Database('DB');await db.prepare('UPDATE admin_sessions SET expires=0 WHERE token_hash=?').bind(createHash('sha256').update(token).digest('hex')).run();
+ assert.equal((await call('/api/admin/projects',{cookie})).status,401);
+ assert.equal((await call('/api/admin/projects',{cookie:'__Host-portfolio_session='+randomBytes(32).toString('hex')})).status,401);
+ for(let i=0;i<10;i++)assert.equal((await call('/api/auth/login',{method:'POST',data:{username:'admin',password:'wrong'},headers:{'CF-Connecting-IP':'192.0.2.2'}})).status,401);
+ assert.equal((await call('/api/auth/login',{method:'POST',data:{username:'admin',password},headers:{'CF-Connecting-IP':'192.0.2.2'}})).status,429);
+});

@@ -1,3 +1,4 @@
+import {passwordMode,passwordIdentity,authRoute} from './password-auth.js';
 import seed from './seed.json';
 import adminHTML from '../admin/index.html?raw';
 import defaults from './default-settings.json';
@@ -31,6 +32,7 @@ async function init(env){
  await env.DB.batch(operations);
 }
 async function identity(request,env){
+ if(passwordMode(env))return passwordIdentity(request,env);
  const id=request.headers.get('oai-authenticated-user-id'),email=request.headers.get('oai-authenticated-user-email');
  if(!id||!email)return null;
  const existing=await stmt(env,'SELECT user_id FROM owner WHERE id=1').first();
@@ -84,6 +86,7 @@ async function handle(request,env){
  if(path.startsWith('/api/')||path.startsWith('/media/')||path==='/admin'||path.startsWith('/admin/')){
  if(!env.DB)fail('Database is unavailable',503);await init(env);
  }
+ const authResponse=await authRoute(request,env,{json,fail,body,sameOrigin});if(authResponse)return authResponse;
  if(path==='/api/content'&&method==='GET'){
  const result=await stmt(env,"SELECT data FROM projects WHERE status='published' ORDER BY position,id").all();
  const settings=await stmt(env,'SELECT data FROM settings WHERE id=1').first();return json({projects:result.results.map(r=>JSON.parse(r.data)),settings:JSON.parse(settings.data)});
@@ -100,12 +103,14 @@ async function handle(request,env){
  if(path==='/admin'||path==='/admin/'||path.startsWith('/api/admin')){
  const user=await identity(request,env);
  if(!user){if(path.startsWith('/api/'))return json({error:'Owner access required / Доступ только владельцу'},request.headers.get('oai-authenticated-user-id')?403:401);
+ if(passwordMode(env))return Response.redirect(`${url.origin}/admin/login`,302);
  if(!request.headers.get('oai-authenticated-user-id'))return Response.redirect(`${url.origin}/signin-with-chatgpt?return_to=%2Fadmin`,302);
  return new Response('Доступ только владельцу сайта. Войдите в свой аккаунт ChatGPT.',{status:403,headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}});}
  if(path==='/admin'||path==='/admin/'){
  const [rows,setting]=await Promise.all([stmt(env,'SELECT * FROM projects ORDER BY position,id').all(),stmt(env,'SELECT * FROM settings WHERE id=1').first()]);
- const bootstrap=JSON.stringify({session:{email:user.email},projects:rows.results.map(r=>({...JSON.parse(r.data),revision:r.revision})),settings:{...JSON.parse(setting.data),revision:setting.revision},copyDefaults}).replace(/</g,'\\u003c');
- return new Response(adminHTML.replace('<!--ADMIN_BOOTSTRAP-->',()=>`<script type="application/json" id="admin-bootstrap">${bootstrap}</script>`),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"}});
+ const bootstrap=JSON.stringify({session:{email:user.email,passwordAuth:passwordMode(env)},projects:rows.results.map(r=>({...JSON.parse(r.data),revision:r.revision})),settings:{...JSON.parse(setting.data),revision:setting.revision},copyDefaults}).replace(/</g,'\\u003c');
+ const page=passwordMode(env)?adminHTML.replace('/signin-with-chatgpt?return_to=%2Fadmin','/admin/login').replace('<a href="/signout-with-chatgpt?return_to=/">Выйти</a>','<form action="/api/auth/logout" method="post" class="logout-form"><button type="submit">Выйти</button></form>'):adminHTML;
+ return new Response(page.replace('<!--ADMIN_BOOTSTRAP-->',()=>`<script type="application/json" id="admin-bootstrap">${bootstrap}</script>`),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"}});
  }
  if(method!=='GET')sameOrigin(request);
  if(path==='/api/admin/copy-defaults'&&method==='GET')return json(copyDefaults);

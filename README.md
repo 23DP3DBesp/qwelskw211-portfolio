@@ -4,11 +4,11 @@ HTML, CSS and vanilla JavaScript frontend with a Cloudflare Worker, D1 database 
 
 ## Owner administration
 
-Open `/admin`. Sites signs the visitor in with ChatGPT. The server enrolls only the verified email configured by the site owner in `ADMIN_OWNER_EMAIL`. Enrollment stores the stable site-scoped user ID in D1. Subsequent access checks use that ID; another signed-in account cannot use the administration APIs. Changing public contact email does not change admin access. Do not clear the `owner` table to transfer access without verifying the replacement identity.
+Open `/admin/login` and use the owner username and password. Production uses `ADMIN_USERNAME` and the secret `ADMIN_PASSWORD_HASH`; the generated password is never included in the browser bundle or source repository. `node scripts/setup-admin.mjs` generates random credentials in ignored `.sites-runtime/admin-credentials.txt` and the matching server configuration in `.sites-runtime/admin-auth.json`. Keep the credentials in a password manager. Configure the hash as a Sites runtime secret and redeploy to activate it.
 
-No password, account credential or production authentication bypass is shipped to the browser. The HTML administration page is embedded in the Worker and is not a public static asset. The hosting platform must remain responsible for sanitizing and forwarding the `oai-authenticated-user-*` identity headers. Never expose this Worker directly behind a proxy that trusts client-supplied identity headers.
+Sessions use random opaque HttpOnly cookies (Secure on HTTPS, SameSite=Strict), expire after 8 hours, and are stored as SHA-256 hashes in D1. Logout revokes the session. Changing the configured password hash invalidates existing sessions. Login attempts are limited by IP; mutations check the request origin. Authenticated ChatGPT headers cannot grant admin access when password mode is configured.
 
-The site currently remains owner-private. Publishing it for general visitors is a separate audience change; admin checks stay in place.
+The legacy ChatGPT owner enrollment remains available only when no password hash is configured. The hosting platform's audience setting is separate: a private Site still requires platform sign-in before reaching the password form. Public portfolio access must be enabled separately; admin routes stay password protected.
 
 ## Daily editing
 
@@ -23,10 +23,12 @@ Images: JPEG, PNG, WebP, up to 10 MB each. Galleries: 24 images. SVG uploads are
 
 Requires Node and npm. `npm ci`, `npm run db:generate` after schema changes, then `npm run dev`. Development and tests rebuild automatically to avoid serving stale output. Use `npm run build` for a production build.
 
-Local preview runs at port 4173 with persistent local D1/R2 state in ignored `.wrangler/`. It is anonymous by default: production login is managed by Sites. `npm test` uses an isolated Miniflare environment to test verified owner headers, rejected callers, CSRF, draft media access, revision conflicts and form rate limiting. Test identity headers are never a production login mechanism.
+Local preview runs at `http://127.0.0.1:4173` with persistent local D1/R2 state in ignored `.wrangler/`. Run `node scripts/setup-admin.mjs` once before `npm run dev` to enable local password login. VS Code Live Server on port 5500 only serves files: it cannot run the API, database, or login. Local and production databases are separate. `npm test` uses an isolated Miniflare environment to test verified owner headers, rejected callers, CSRF, draft media access, revision conflicts and form rate limiting. Test identity headers are never a production login mechanism.
 
 Production settings: `ADMIN_OWNER_EMAIL` is a server-side secret configured in Sites. Logical bindings are `DB` and `MEDIA` in `.openai/hosting.json`. Drizzle migrations under `drizzle/` are schema-only; applied migrations are immutable. The first request seeds the original project concepts and contact details exactly once. Later deployments preserve edited data.
 
 `dist/` is generated output and is rebuilt completely. `server/seed.json` contains only initial concepts, not the live source of truth. Content changes made in admin are stored in D1, image bytes in R2, and language preferences only in local browser storage.
 
 All browser API requests validate JSON responses and reject sign-in redirects. Reload the page to sign in again after session expiry. Editor copy defaults are served by `/api/admin/copy-defaults`; inquiry success requires an explicit `{ok:true}` response.
+
+The homepage project statistic counts the published projects returned by the API. Drafts and hidden projects are excluded; failed loading leaves the statistic unknown instead of showing a made-up total.

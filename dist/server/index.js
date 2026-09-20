@@ -1,3 +1,82 @@
+//#region admin/login.html?raw
+var login_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>Вход — QWELSKW</title><link rel=\"stylesheet\" href=\"/css/admin.css?v=6\"><script src=\"/js/api.js\" defer><\/script><script src=\"/js/login.js\" defer><\/script></head><body><header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a></header><main class=\"admin-main login-main\"><p class=\"label\">ДЛЯ ВЛАДЕЛЬЦА</p><h1>Вход в управление</h1><form id=\"login-form\"><label>Логин<input name=\"username\" autocomplete=\"username\" maxlength=\"100\" required autofocus></label><label>Пароль<input name=\"password\" type=\"password\" autocomplete=\"current-password\" maxlength=\"256\" required></label><button class=\"primary\" type=\"submit\">Войти</button><p id=\"login-status\" role=\"status\" aria-live=\"polite\"></p></form><p><a href=\"/\">Вернуться в портфолио</a></p></main></body></html>\n";
+//#endregion
+//#region server/password-auth.js
+var enc = new TextEncoder();
+var hex = (bytes) => Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+var digest = async (value) => hex(await crypto.subtle.digest("SHA-256", enc.encode(value)));
+var query = (env, sql, ...args) => env.DB.prepare(sql).bind(...args);
+var cookieName = (request) => new URL(request.url).protocol === "https:" ? "__Host-portfolio_session" : "portfolio_local_session";
+var sessionToken = (request) => {
+	const value = (request.headers.get("Cookie") || "").split(";").map((v) => v.trim()).find((v) => v.startsWith(cookieName(request) + "="))?.split("=")[1];
+	return /^[a-f0-9]{64}$/.test(value || "") ? value : null;
+};
+var cookie = (request, token, age) => `${cookieName(request)}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${new URL(request.url).protocol === "https:" ? "; Secure" : ""}`;
+var passwordMode = (env) => !!env.ADMIN_PASSWORD_HASH;
+async function passwordIdentity(request, env) {
+	const token = sessionToken(request);
+	if (!token) return null;
+	const row = await query(env, "SELECT credential_version FROM admin_sessions WHERE token_hash=? AND expires>?", await digest(token), Date.now()).first();
+	if (!row || row.credential_version !== await digest(env.ADMIN_PASSWORD_HASH)) return null;
+	return {
+		id: "password-owner",
+		email: env.ADMIN_USERNAME || "admin"
+	};
+}
+async function authRoute(request, env, { json, fail, body, sameOrigin }) {
+	const url = new URL(request.url), path = url.pathname;
+	if (path === "/admin/login") {
+		if (!passwordMode(env)) return Response.redirect(`${url.origin}/signin-with-chatgpt?return_to=%2Fadmin`, 302);
+		if (await passwordIdentity(request, env)) return Response.redirect(`${url.origin}/admin`, 302);
+		return new Response(login_default, { headers: {
+			"Content-Type": "text/html; charset=utf-8",
+			"Cache-Control": "no-store",
+			"Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
+		} });
+	}
+	if (path !== "/api/auth/login" && path !== "/api/auth/logout") return null;
+	if (request.method !== "POST") fail("Method not allowed", 405);
+	sameOrigin(request);
+	if (path === "/api/auth/logout") {
+		const token = sessionToken(request);
+		if (token) await query(env, "DELETE FROM admin_sessions WHERE token_hash=?", await digest(token)).run();
+		return new Response(null, {
+			status: 303,
+			headers: {
+				Location: "/admin/login",
+				"Set-Cookie": cookie(request, "", 0),
+				"Cache-Control": "no-store"
+			}
+		});
+	}
+	if (!passwordMode(env)) fail("Вход по паролю не настроен", 503);
+	const value = await body(request, 4096);
+	if (typeof value.username !== "string" || typeof value.password !== "string" || value.username.length > 100 || value.password.length > 256) fail("Неверный логин или пароль", 401);
+	const current = Date.now();
+	if ((await query(env, "INSERT INTO rate_limits (key,count,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN expires<=? THEN 1 ELSE count+1 END, expires=CASE WHEN expires<=? THEN excluded.expires ELSE expires END RETURNING count", "login:" + await digest(request.headers.get("CF-Connecting-IP") || "unknown"), current + 9e5, current, current).first()).count > 10) fail("Слишком много попыток. Попробуйте через 15 минут.", 429);
+	const [scheme, saltHex, expected] = env.ADMIN_PASSWORD_HASH.split(":");
+	if (scheme !== "pbkdf2-sha256-100000" || !/^([a-f0-9]{2}){16}$/.test(saltHex) || !/^[a-f0-9]{64}$/.test(expected)) fail("Вход временно недоступен", 503);
+	const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(value.password), "PBKDF2", false, ["deriveBits"]);
+	const salt = Uint8Array.from(saltHex.match(/../g), (v) => parseInt(v, 16));
+	const actual = hex(await crypto.subtle.deriveBits({
+		name: "PBKDF2",
+		salt,
+		iterations: 1e5,
+		hash: "SHA-256"
+	}, keyMaterial, 256));
+	let difference = 0;
+	for (let i = 0; i < expected.length; i++) difference |= expected.charCodeAt(i) ^ actual.charCodeAt(i);
+	if (difference || value.username !== (env.ADMIN_USERNAME || "admin")) fail("Неверный логин или пароль", 401);
+	const token = hex(crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(32))), oldToken = sessionToken(request);
+	const operations = [query(env, "DELETE FROM admin_sessions WHERE expires<=?", current)];
+	if (oldToken) operations.push(query(env, "DELETE FROM admin_sessions WHERE token_hash=?", await digest(oldToken)));
+	operations.push(query(env, "INSERT INTO admin_sessions (token_hash,expires,credential_version) VALUES (?,?,?)", await digest(token), current + 288e5, await digest(env.ADMIN_PASSWORD_HASH)));
+	await env.DB.batch(operations);
+	const response = json({ ok: true });
+	response.headers.set("Set-Cookie", cookie(request, token, 28800));
+	return response;
+}
+//#endregion
 //#region server/seed.json
 var seed_default = [
 	{
@@ -99,7 +178,7 @@ var seed_default = [
 ];
 //#endregion
 //#region admin/index.html?raw
-var admin_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>QWELSKW — Управление</title><link rel=\"stylesheet\" href=\"/css/admin.css?v=5\"><script src=\"/js/api.js\" defer><\/script><script src=\"/js/admin.js?v=5\" defer><\/script></head><body><!--ADMIN_BOOTSTRAP-->\r\n<header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a><div><span id=\"account\"></span> <a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a></div></header>\r\n<main class=\"admin-main\"><div class=\"admin-heading\"><div><p class=\"label\">ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА</p><h1>Управление сайтом</h1></div><a href=\"/\" target=\"_blank\" rel=\"noopener\">Открыть сайт ↗</a></div>\r\n<nav class=\"admin-tabs\" aria-label=\"Разделы\"><button data-tab=\"projects\" aria-pressed=\"true\">Проекты</button><button data-tab=\"settings\" aria-pressed=\"false\">Тексты, услуги и контакты</button><button data-tab=\"inquiries\" aria-pressed=\"false\">Заявки</button></nav>\r\n<p id=\"status\" role=\"status\" aria-live=\"polite\"></p><div id=\"load-recovery\" hidden><button type=\"button\" id=\"retry-load\">Повторить загрузку</button> <a href=\"/signin-with-chatgpt?return_to=%2Fadmin\" target=\"_top\">Войти снова</a></div>\r\n<section id=\"projects-panel\"><div class=\"section-line\"><h2>Работы</h2><button id=\"new-project\" class=\"primary\">Добавить проект</button></div><p class=\"hint\">Меньшее число в поле «Порядок» поднимает работу выше. Черновики и скрытые работы видны только вам.</p><div id=\"project-list\"></div></section>\r\n<section id=\"settings-panel\" hidden><h2>Контакты</h2><form id=\"settings-form\"><div id=\"contact-fields\" class=\"field-grid\"></div><h2>Тексты и услуги · EN / RU</h2><p class=\"hint\">Измените тексты первого экрана, услуг, разделов и кнопок. Исходный английский текст помогает найти нужное место. Пустое поле использует исходный текст.</p><label>Найти текст<input type=\"search\" id=\"copy-search\" placeholder=\"Например: VIDEO, съёмка, CONTACT\"></label><div id=\"copy-fields\"></div><div class=\"sticky-actions\"><button class=\"primary\" type=\"submit\">Сохранить тексты и контакты</button></div></form></section>\r\n<section id=\"inquiries-panel\" hidden><h2>Заявки</h2><p class=\"hint\">Новые обращения с формы на сайте. Они сохраняются здесь; автоматические письма не отправляются.</p><div id=\"inquiry-list\"></div></section>\r\n</main>\r\n<dialog id=\"editor\" aria-labelledby=\"editor-title\"><form id=\"project-form\"><div class=\"section-line\"><h2 id=\"editor-title\">Проект</h2><button type=\"button\" id=\"close-editor\" aria-label=\"Закрыть редактор\">×</button></div>\r\n<div class=\"field-grid\"><label>Адрес работы<input name=\"id\" required pattern=\"[a-z0-9][a-z0-9-]{0,79}\" maxlength=\"80\" placeholder=\"my-project\"><small>Латинские буквы, цифры и дефис. После сохранения не меняется.</small></label><label>Категория<select name=\"category\"><option value=\"web\">Web</option><option value=\"design\">Design / Photo</option><option value=\"video\">Video</option></select></label><label>Статус<select name=\"status\"><option value=\"draft\">Черновик — только мне</option><option value=\"published\">Опубликован</option><option value=\"hidden\">Скрыт — только мне</option></select></label><label>Порядок<input type=\"number\" name=\"position\" value=\"0\" min=\"0\" max=\"10000\" required></label></div>\r\n<div class=\"field-grid\"><label>Название · EN<input name=\"title_en\" maxlength=\"160\" required></label><label>Название · RU<input name=\"title_ru\" maxlength=\"160\"></label><label>Подпись карточки · EN<textarea name=\"description_en\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Подпись карточки · RU<textarea name=\"description_ru\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Результат · EN<textarea name=\"result_en\" maxlength=\"6000\" rows=\"5\"></textarea></label><label>Результат · RU<textarea name=\"result_ru\" maxlength=\"6000\" rows=\"5\"></textarea></label></div>\r\n<label>Инструменты / технологии<input name=\"tech\" maxlength=\"300\" placeholder=\"Lightroom / Photoshop\"></label><label class=\"check\"><input type=\"checkbox\" name=\"concept\"> Это концепция, а не завершённая работа клиента</label>\r\n<h3>Обложка</h3><input type=\"hidden\" name=\"cover\"><label>Загрузить обложку · JPEG, PNG, WebP до 10 МБ<input id=\"cover-upload\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\"></label><img id=\"cover-preview\" class=\"cover-preview\" alt=\"Обложка\" hidden>\r\n<h3>Фотографии результата</h3><label>Добавить фотографии · до 24 в галерее<input id=\"gallery-upload\" type=\"file\" multiple accept=\"image/jpeg,image/png,image/webp\"></label><div id=\"gallery-editor\" class=\"gallery-editor\"></div>\r\n<div class=\"field-grid\"><label>Видео · ссылка на YouTube или Vimeo<input name=\"video\" type=\"url\" placeholder=\"https://www.youtube.com/watch?v=…\"></label><label>Ссылка на готовый сайт (необязательно)<input name=\"link\" type=\"url\" placeholder=\"https://…\"></label></div><p id=\"editor-status\" role=\"status\"></p><div class=\"sticky-actions\"><button type=\"submit\" class=\"primary\" id=\"save-project\">Сохранить</button><a id=\"preview-project\" href=\"#\" target=\"_blank\" rel=\"noopener\" hidden>Посмотреть сохранённую версию ↗</a></div></form></dialog>\r\n</body></html>\r\n";
+var admin_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>QWELSKW — Управление</title><link rel=\"stylesheet\" href=\"/css/admin.css?v=6\"><script src=\"/js/api.js\" defer><\/script><script src=\"/js/admin.js?v=6\" defer><\/script></head><body><!--ADMIN_BOOTSTRAP-->\r\n<header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a><div><span id=\"account\"></span> <a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a></div></header>\r\n<main class=\"admin-main\"><div class=\"admin-heading\"><div><p class=\"label\">ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА</p><h1>Управление сайтом</h1></div><a href=\"/\" target=\"_blank\" rel=\"noopener\">Открыть сайт ↗</a></div>\r\n<nav class=\"admin-tabs\" aria-label=\"Разделы\"><button data-tab=\"projects\" aria-pressed=\"true\">Проекты</button><button data-tab=\"settings\" aria-pressed=\"false\">Тексты, услуги и контакты</button><button data-tab=\"inquiries\" aria-pressed=\"false\">Заявки</button></nav>\r\n<p id=\"status\" role=\"status\" aria-live=\"polite\"></p><div id=\"load-recovery\" hidden><button type=\"button\" id=\"retry-load\">Повторить загрузку</button> <a href=\"/signin-with-chatgpt?return_to=%2Fadmin\" target=\"_top\">Войти снова</a></div>\r\n<section id=\"projects-panel\"><div class=\"section-line\"><h2>Работы</h2><button id=\"new-project\" class=\"primary\">Добавить проект</button></div><p class=\"hint\">Меньшее число в поле «Порядок» поднимает работу выше. Черновики и скрытые работы видны только вам.</p><div id=\"project-list\"></div></section>\r\n<section id=\"settings-panel\" hidden><h2>Контакты</h2><form id=\"settings-form\"><div id=\"contact-fields\" class=\"field-grid\"></div><h2>Тексты и услуги · EN / RU</h2><p class=\"hint\">Измените тексты первого экрана, услуг, разделов и кнопок. Исходный английский текст помогает найти нужное место. Пустое поле использует исходный текст.</p><label>Найти текст<input type=\"search\" id=\"copy-search\" placeholder=\"Например: VIDEO, съёмка, CONTACT\"></label><div id=\"copy-fields\"></div><div class=\"sticky-actions\"><button class=\"primary\" type=\"submit\">Сохранить тексты и контакты</button></div></form></section>\r\n<section id=\"inquiries-panel\" hidden><h2>Заявки</h2><p class=\"hint\">Новые обращения с формы на сайте. Они сохраняются здесь; автоматические письма не отправляются.</p><div id=\"inquiry-list\"></div></section>\r\n</main>\r\n<dialog id=\"editor\" aria-labelledby=\"editor-title\"><form id=\"project-form\"><div class=\"section-line\"><h2 id=\"editor-title\">Проект</h2><button type=\"button\" id=\"close-editor\" aria-label=\"Закрыть редактор\">×</button></div>\r\n<div class=\"field-grid\"><label>Адрес работы<input name=\"id\" required pattern=\"[a-z0-9][a-z0-9-]{0,79}\" maxlength=\"80\" placeholder=\"my-project\"><small>Латинские буквы, цифры и дефис. После сохранения не меняется.</small></label><label>Категория<select name=\"category\"><option value=\"web\">Web</option><option value=\"design\">Design / Photo</option><option value=\"video\">Video</option></select></label><label>Статус<select name=\"status\"><option value=\"draft\">Черновик — только мне</option><option value=\"published\">Опубликован</option><option value=\"hidden\">Скрыт — только мне</option></select></label><label>Порядок<input type=\"number\" name=\"position\" value=\"0\" min=\"0\" max=\"10000\" required></label></div>\r\n<div class=\"field-grid\"><label>Название · EN<input name=\"title_en\" maxlength=\"160\" required></label><label>Название · RU<input name=\"title_ru\" maxlength=\"160\"></label><label>Подпись карточки · EN<textarea name=\"description_en\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Подпись карточки · RU<textarea name=\"description_ru\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Результат · EN<textarea name=\"result_en\" maxlength=\"6000\" rows=\"5\"></textarea></label><label>Результат · RU<textarea name=\"result_ru\" maxlength=\"6000\" rows=\"5\"></textarea></label></div>\r\n<label>Инструменты / технологии<input name=\"tech\" maxlength=\"300\" placeholder=\"Lightroom / Photoshop\"></label><label class=\"check\"><input type=\"checkbox\" name=\"concept\"> Это концепция, а не завершённая работа клиента</label>\r\n<h3>Обложка</h3><input type=\"hidden\" name=\"cover\"><label>Загрузить обложку · JPEG, PNG, WebP до 10 МБ<input id=\"cover-upload\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\"></label><img id=\"cover-preview\" class=\"cover-preview\" alt=\"Обложка\" hidden>\r\n<h3>Фотографии результата</h3><label>Добавить фотографии · до 24 в галерее<input id=\"gallery-upload\" type=\"file\" multiple accept=\"image/jpeg,image/png,image/webp\"></label><div id=\"gallery-editor\" class=\"gallery-editor\"></div>\r\n<div class=\"field-grid\"><label>Видео · ссылка на YouTube или Vimeo<input name=\"video\" type=\"url\" placeholder=\"https://www.youtube.com/watch?v=…\"></label><label>Ссылка на готовый сайт (необязательно)<input name=\"link\" type=\"url\" placeholder=\"https://…\"></label></div><p id=\"editor-status\" role=\"status\"></p><div class=\"sticky-actions\"><button type=\"submit\" class=\"primary\" id=\"save-project\">Сохранить</button><a id=\"preview-project\" href=\"#\" target=\"_blank\" rel=\"noopener\" hidden>Посмотреть сохранённую версию ↗</a></div></form></dialog>\r\n</body></html>\r\n";
 var default_settings_default = {
 	contacts: {
 		"telegram": "https://t.me/qwelskw211",
@@ -348,6 +427,7 @@ async function init(env) {
 	await env.DB.batch(operations);
 }
 async function identity(request, env) {
+	if (passwordMode(env)) return passwordIdentity(request, env);
 	const id = request.headers.get("oai-authenticated-user-id"), email = request.headers.get("oai-authenticated-user-email");
 	if (!id || !email) return null;
 	const existing = await stmt(env, "SELECT user_id FROM owner WHERE id=1").first();
@@ -462,6 +542,13 @@ async function handle(request, env) {
 		if (!env.DB) fail("Database is unavailable", 503);
 		await init(env);
 	}
+	const authResponse = await authRoute(request, env, {
+		json,
+		fail,
+		body,
+		sameOrigin
+	});
+	if (authResponse) return authResponse;
 	if (path === "/api/content" && method === "GET") {
 		const result = await stmt(env, "SELECT data FROM projects WHERE status='published' ORDER BY position,id").all();
 		const settings = await stmt(env, "SELECT data FROM settings WHERE id=1").first();
@@ -490,6 +577,7 @@ async function handle(request, env) {
 		const user = await identity(request, env);
 		if (!user) {
 			if (path.startsWith("/api/")) return json({ error: "Owner access required / Доступ только владельцу" }, request.headers.get("oai-authenticated-user-id") ? 403 : 401);
+			if (passwordMode(env)) return Response.redirect(`${url.origin}/admin/login`, 302);
 			if (!request.headers.get("oai-authenticated-user-id")) return Response.redirect(`${url.origin}/signin-with-chatgpt?return_to=%2Fadmin`, 302);
 			return new Response("Доступ только владельцу сайта. Войдите в свой аккаунт ChatGPT.", {
 				status: 403,
@@ -502,7 +590,10 @@ async function handle(request, env) {
 		if (path === "/admin" || path === "/admin/") {
 			const [rows, setting] = await Promise.all([stmt(env, "SELECT * FROM projects ORDER BY position,id").all(), stmt(env, "SELECT * FROM settings WHERE id=1").first()]);
 			const bootstrap = JSON.stringify({
-				session: { email: user.email },
+				session: {
+					email: user.email,
+					passwordAuth: passwordMode(env)
+				},
 				projects: rows.results.map((r) => ({
 					...JSON.parse(r.data),
 					revision: r.revision
@@ -513,7 +604,8 @@ async function handle(request, env) {
 				},
 				copyDefaults: copy_defaults_default
 			}).replace(/</g, "\\u003c");
-			return new Response(admin_default.replace("<!--ADMIN_BOOTSTRAP-->", () => `<script type="application/json" id="admin-bootstrap">${bootstrap}<\/script>`), { headers: {
+			const page = passwordMode(env) ? admin_default.replace("/signin-with-chatgpt?return_to=%2Fadmin", "/admin/login").replace("<a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a>", "<form action=\"/api/auth/logout\" method=\"post\" class=\"logout-form\"><button type=\"submit\">Выйти</button></form>") : admin_default;
+			return new Response(page.replace("<!--ADMIN_BOOTSTRAP-->", () => `<script type="application/json" id="admin-bootstrap">${bootstrap}<\/script>`), { headers: {
 				"Content-Type": "text/html; charset=utf-8",
 				"Cache-Control": "no-store",
 				"Content-Security-Policy": "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"

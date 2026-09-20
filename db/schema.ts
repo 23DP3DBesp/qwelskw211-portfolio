@@ -1,4 +1,5 @@
 import {sqliteTable,text,integer,index} from 'drizzle-orm/sqlite-core';
+export const adminSessions=sqliteTable('admin_sessions',{tokenHash:text('token_hash').primaryKey(),expires:integer('expires').notNull(),credentialVersion:text('credential_version').notNull()});
 export const owner=sqliteTable('owner',{id:integer('id').primaryKey(),userId:text('user_id').notNull().unique()});
 export const projects=sqliteTable('projects',{id:text('id').primaryKey(),data:text('data').notNull(),status:text('status').notNull().default('draft'),position:integer('position').notNull().default(0),revision:integer('revision').notNull().default(1),updated:text('updated').notNull()}, t=>[index('idx_projects_status_position').on(t.status,t.position)]);
 export const settings=sqliteTable('settings',{id:integer('id').primaryKey(),data:text('data').notNull(),revision:integer('revision').notNull().default(1)});
