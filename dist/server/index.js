@@ -99,7 +99,7 @@ var seed_default = [
 ];
 //#endregion
 //#region admin/index.html?raw
-var admin_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>QWELSKW — Управление</title><link rel=\"stylesheet\" href=\"/css/admin.css\"><script src=\"/js/admin.js\" defer><\/script></head><body>\n<header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a><div><span id=\"account\"></span> <a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a></div></header>\n<main class=\"admin-main\"><div class=\"admin-heading\"><div><p class=\"label\">ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА</p><h1>Управление сайтом</h1></div><a href=\"/\" target=\"_blank\" rel=\"noopener\">Открыть сайт ↗</a></div>\n<nav class=\"admin-tabs\" aria-label=\"Разделы\"><button data-tab=\"projects\" aria-pressed=\"true\">Проекты</button><button data-tab=\"settings\" aria-pressed=\"false\">Тексты, услуги и контакты</button><button data-tab=\"inquiries\" aria-pressed=\"false\">Заявки</button></nav>\n<p id=\"status\" role=\"status\" aria-live=\"polite\"></p>\n<section id=\"projects-panel\"><div class=\"section-line\"><h2>Работы</h2><button id=\"new-project\" class=\"primary\">Добавить проект</button></div><p class=\"hint\">Меньшее число в поле «Порядок» поднимает работу выше. Черновики и скрытые работы видны только вам.</p><div id=\"project-list\"></div></section>\n<section id=\"settings-panel\" hidden><h2>Контакты</h2><form id=\"settings-form\"><div id=\"contact-fields\" class=\"field-grid\"></div><h2>Тексты и услуги · EN / RU</h2><p class=\"hint\">Измените тексты первого экрана, услуг, разделов и кнопок. Исходный английский текст помогает найти нужное место. Пустое поле использует исходный текст.</p><label>Найти текст<input type=\"search\" id=\"copy-search\" placeholder=\"Например: VIDEO, съёмка, CONTACT\"></label><div id=\"copy-fields\"></div><div class=\"sticky-actions\"><button class=\"primary\" type=\"submit\">Сохранить тексты и контакты</button></div></form></section>\n<section id=\"inquiries-panel\" hidden><h2>Заявки</h2><p class=\"hint\">Новые обращения с формы на сайте. Они сохраняются здесь; автоматические письма не отправляются.</p><div id=\"inquiry-list\"></div></section>\n</main>\n<dialog id=\"editor\" aria-labelledby=\"editor-title\"><form id=\"project-form\"><div class=\"section-line\"><h2 id=\"editor-title\">Проект</h2><button type=\"button\" id=\"close-editor\" aria-label=\"Закрыть редактор\">×</button></div>\n<div class=\"field-grid\"><label>Адрес работы<input name=\"id\" required pattern=\"[a-z0-9][a-z0-9-]{0,79}\" maxlength=\"80\" placeholder=\"my-project\"><small>Латинские буквы, цифры и дефис. После сохранения не меняется.</small></label><label>Категория<select name=\"category\"><option value=\"web\">Web</option><option value=\"design\">Design / Photo</option><option value=\"video\">Video</option></select></label><label>Статус<select name=\"status\"><option value=\"draft\">Черновик — только мне</option><option value=\"published\">Опубликован</option><option value=\"hidden\">Скрыт — только мне</option></select></label><label>Порядок<input type=\"number\" name=\"position\" value=\"0\" min=\"0\" max=\"10000\" required></label></div>\n<div class=\"field-grid\"><label>Название · EN<input name=\"title_en\" maxlength=\"160\" required></label><label>Название · RU<input name=\"title_ru\" maxlength=\"160\"></label><label>Подпись карточки · EN<textarea name=\"description_en\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Подпись карточки · RU<textarea name=\"description_ru\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Результат · EN<textarea name=\"result_en\" maxlength=\"6000\" rows=\"5\"></textarea></label><label>Результат · RU<textarea name=\"result_ru\" maxlength=\"6000\" rows=\"5\"></textarea></label></div>\n<label>Инструменты / технологии<input name=\"tech\" maxlength=\"300\" placeholder=\"Lightroom / Photoshop\"></label><label class=\"check\"><input type=\"checkbox\" name=\"concept\"> Это концепция, а не завершённая работа клиента</label>\n<h3>Обложка</h3><input type=\"hidden\" name=\"cover\"><label>Загрузить обложку · JPEG, PNG, WebP до 10 МБ<input id=\"cover-upload\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\"></label><img id=\"cover-preview\" class=\"cover-preview\" alt=\"Обложка\" hidden>\n<h3>Фотографии результата</h3><label>Добавить фотографии · до 24 в галерее<input id=\"gallery-upload\" type=\"file\" multiple accept=\"image/jpeg,image/png,image/webp\"></label><div id=\"gallery-editor\" class=\"gallery-editor\"></div>\n<div class=\"field-grid\"><label>Видео · ссылка на YouTube или Vimeo<input name=\"video\" type=\"url\" placeholder=\"https://www.youtube.com/watch?v=…\"></label><label>Ссылка на готовый сайт (необязательно)<input name=\"link\" type=\"url\" placeholder=\"https://…\"></label></div><p id=\"editor-status\" role=\"status\"></p><div class=\"sticky-actions\"><button type=\"submit\" class=\"primary\" id=\"save-project\">Сохранить</button><a id=\"preview-project\" href=\"#\" target=\"_blank\" rel=\"noopener\" hidden>Посмотреть сохранённую версию ↗</a></div></form></dialog>\n</body></html>\n";
+var admin_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>QWELSKW — Управление</title><link rel=\"stylesheet\" href=\"/css/admin.css\"><script src=\"/js/api.js\" defer><\/script><script src=\"/js/admin.js\" defer><\/script></head><body>\r\n<header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a><div><span id=\"account\"></span> <a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a></div></header>\r\n<main class=\"admin-main\"><div class=\"admin-heading\"><div><p class=\"label\">ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА</p><h1>Управление сайтом</h1></div><a href=\"/\" target=\"_blank\" rel=\"noopener\">Открыть сайт ↗</a></div>\r\n<nav class=\"admin-tabs\" aria-label=\"Разделы\"><button data-tab=\"projects\" aria-pressed=\"true\">Проекты</button><button data-tab=\"settings\" aria-pressed=\"false\">Тексты, услуги и контакты</button><button data-tab=\"inquiries\" aria-pressed=\"false\">Заявки</button></nav>\r\n<p id=\"status\" role=\"status\" aria-live=\"polite\"></p>\r\n<section id=\"projects-panel\"><div class=\"section-line\"><h2>Работы</h2><button id=\"new-project\" class=\"primary\">Добавить проект</button></div><p class=\"hint\">Меньшее число в поле «Порядок» поднимает работу выше. Черновики и скрытые работы видны только вам.</p><div id=\"project-list\"></div></section>\r\n<section id=\"settings-panel\" hidden><h2>Контакты</h2><form id=\"settings-form\"><div id=\"contact-fields\" class=\"field-grid\"></div><h2>Тексты и услуги · EN / RU</h2><p class=\"hint\">Измените тексты первого экрана, услуг, разделов и кнопок. Исходный английский текст помогает найти нужное место. Пустое поле использует исходный текст.</p><label>Найти текст<input type=\"search\" id=\"copy-search\" placeholder=\"Например: VIDEO, съёмка, CONTACT\"></label><div id=\"copy-fields\"></div><div class=\"sticky-actions\"><button class=\"primary\" type=\"submit\">Сохранить тексты и контакты</button></div></form></section>\r\n<section id=\"inquiries-panel\" hidden><h2>Заявки</h2><p class=\"hint\">Новые обращения с формы на сайте. Они сохраняются здесь; автоматические письма не отправляются.</p><div id=\"inquiry-list\"></div></section>\r\n</main>\r\n<dialog id=\"editor\" aria-labelledby=\"editor-title\"><form id=\"project-form\"><div class=\"section-line\"><h2 id=\"editor-title\">Проект</h2><button type=\"button\" id=\"close-editor\" aria-label=\"Закрыть редактор\">×</button></div>\r\n<div class=\"field-grid\"><label>Адрес работы<input name=\"id\" required pattern=\"[a-z0-9][a-z0-9-]{0,79}\" maxlength=\"80\" placeholder=\"my-project\"><small>Латинские буквы, цифры и дефис. После сохранения не меняется.</small></label><label>Категория<select name=\"category\"><option value=\"web\">Web</option><option value=\"design\">Design / Photo</option><option value=\"video\">Video</option></select></label><label>Статус<select name=\"status\"><option value=\"draft\">Черновик — только мне</option><option value=\"published\">Опубликован</option><option value=\"hidden\">Скрыт — только мне</option></select></label><label>Порядок<input type=\"number\" name=\"position\" value=\"0\" min=\"0\" max=\"10000\" required></label></div>\r\n<div class=\"field-grid\"><label>Название · EN<input name=\"title_en\" maxlength=\"160\" required></label><label>Название · RU<input name=\"title_ru\" maxlength=\"160\"></label><label>Подпись карточки · EN<textarea name=\"description_en\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Подпись карточки · RU<textarea name=\"description_ru\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Результат · EN<textarea name=\"result_en\" maxlength=\"6000\" rows=\"5\"></textarea></label><label>Результат · RU<textarea name=\"result_ru\" maxlength=\"6000\" rows=\"5\"></textarea></label></div>\r\n<label>Инструменты / технологии<input name=\"tech\" maxlength=\"300\" placeholder=\"Lightroom / Photoshop\"></label><label class=\"check\"><input type=\"checkbox\" name=\"concept\"> Это концепция, а не завершённая работа клиента</label>\r\n<h3>Обложка</h3><input type=\"hidden\" name=\"cover\"><label>Загрузить обложку · JPEG, PNG, WebP до 10 МБ<input id=\"cover-upload\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\"></label><img id=\"cover-preview\" class=\"cover-preview\" alt=\"Обложка\" hidden>\r\n<h3>Фотографии результата</h3><label>Добавить фотографии · до 24 в галерее<input id=\"gallery-upload\" type=\"file\" multiple accept=\"image/jpeg,image/png,image/webp\"></label><div id=\"gallery-editor\" class=\"gallery-editor\"></div>\r\n<div class=\"field-grid\"><label>Видео · ссылка на YouTube или Vimeo<input name=\"video\" type=\"url\" placeholder=\"https://www.youtube.com/watch?v=…\"></label><label>Ссылка на готовый сайт (необязательно)<input name=\"link\" type=\"url\" placeholder=\"https://…\"></label></div><p id=\"editor-status\" role=\"status\"></p><div class=\"sticky-actions\"><button type=\"submit\" class=\"primary\" id=\"save-project\">Сохранить</button><a id=\"preview-project\" href=\"#\" target=\"_blank\" rel=\"noopener\" hidden>Посмотреть сохранённую версию ↗</a></div></form></dialog>\r\n</body></html>\r\n";
 var default_settings_default = {
 	contacts: {
 		"telegram": "https://t.me/qwelskw211",
@@ -108,6 +108,159 @@ var default_settings_default = {
 		"instagram": "https://www.instagram.com/qwelskw211/"
 	},
 	copy: {}
+};
+var copy_defaults_default = {
+	"Skip to content": "Перейти к содержимому",
+	"AVAILABLE FOR FREELANCE · 2026": "ОТКРЫТ К ПРОЕКТАМ · 2026",
+	HOME: "ГЛАВНАЯ",
+	ABOUT: "ОБО МНЕ",
+	PROJECTS: "ПРОЕКТЫ",
+	SKILLS: "НАВЫКИ",
+	CONTACT: "КОНТАКТЫ",
+	Home: "Главная",
+	About: "Обо мне",
+	Projects: "Проекты",
+	Skills: "Навыки",
+	Contact: "Контакты",
+	PORTFOLIO: "ПОРТФОЛИО",
+	"WEB DEVELOPER,": "ВЕБ-РАЗРАБОТЧИК,",
+	"DESIGNER & VIDEO MAKER": "ДИЗАЙНЕР И ВИДЕОГРАФ",
+	"DESIGN WITH INTENT.": "ДИЗАЙН СО СМЫСЛОМ.",
+	"BUILD WITH CARE.": "ВНИМАНИЕ К ДЕТАЛЯМ.",
+	"TELL A STORY.": "ИСТОРИИ В КАЖДОМ КАДРЕ.",
+	"VIEW PROJECTS": "СМОТРЕТЬ РАБОТЫ",
+	"CONTACT ME": "СВЯЗАТЬСЯ",
+	PERSONAL: "ЛИЧНОЕ",
+	"INDEPENDENT CREATIVE / EUROPE": "НЕЗАВИСИМЫЙ АВТОР / ЕВРОПА",
+	"WEB DEVELOPMENT": "СОЗДАНИЕ САЙТОВ",
+	"Modern responsive": "Современные адаптивные",
+	interfaces: "интерфейсы",
+	"VIDEO EDITING": "ВИДЕОМОНТАЖ",
+	"Editing, color &": "Монтаж, цвет и",
+	"motion graphics": "моушн-дизайн",
+	VIDEOGRAPHY: "ВИДЕОСЪЁМКА",
+	"Filming &": "Съёмка и",
+	"visual storytelling": "визуальные истории",
+	PHOTOGRAPHY: "ФОТОУСЛУГИ",
+	"Photo shoots, retouching": "Фотосъёмка, ретушь",
+	"& color grading": "и цветокоррекция",
+	"VIEW SKILLS →": "НАВЫКИ →",
+	"VIEW WORK →": "РАБОТЫ →",
+	"EXPLORE →": "СМОТРЕТЬ →",
+	"THE PERSON BEHIND THE WORK": "КТО СТОИТ ЗА РАБОТАМИ",
+	"DESIGN.": "ДИЗАЙН.",
+	"DEVELOP.": "РАЗРАБОТКА.",
+	"CREATE.": "ТВОРЧЕСТВО.",
+	"I'm a web developer, designer and video maker creating thoughtful digital experiences — on the web and on screen.": "Я веб-разработчик, дизайнер и видеограф. Создаю продуманные цифровые проекты — в интернете и на экране.",
+	"I bring together code, visual design and storytelling to turn ideas into websites, photographs and videos.": "Объединяю код, дизайн и визуальный рассказ, чтобы превращать идеи в сайты, фотографии и видео.",
+	"DISCOVER MY STORY": "БОЛЬШЕ ОБО МНЕ",
+	"01 — A MIND FOR DETAIL.": "01 — ВНИМАНИЕ К ДЕТАЛЯМ.",
+	"Structure & style": "Структура и стиль",
+	"Interactive experiences": "Интерактивные интерфейсы",
+	"Visual design & editing": "Дизайн и обработка",
+	"Motion graphics & video": "Анимация и видео",
+	"Photo editing & color grading": "Обработка фото и цвет",
+	"Version control": "Контроль версий",
+	"SELECTED PROJECTS": "ИЗБРАННЫЕ РАБОТЫ",
+	"VIEW ALL PROJECTS": "ВСЕ РАБОТЫ",
+	ALL: "ВСЕ",
+	VIDEO: "ВИДЕО",
+	"Email ↗": "Почта ↗",
+	Design: "Дизайн",
+	Video: "Видео",
+	"NEW STORIES ARE COMING.": "НОВЫЕ ИСТОРИИ СКОРО.",
+	"Video work will appear here soon. Have a filming or editing project in mind?": "Здесь скоро появятся видеоработы. Нужна съёмка или монтаж?",
+	"LET’S TALK": "ОБСУДИМ ПРОЕКТ",
+	"A selection of project concepts & development explorations.": "Подборка концепций и экспериментов в разработке и дизайне.",
+	"AI powered product catalog": "Каталог товаров с ИИ",
+	"Modern web music experience": "Современный веб-плеер",
+	"Full stack project": "Full stack приложение",
+	"UI and frontend experiments": "Эксперименты с интерфейсами",
+	"VIEW PROJECT": "ОТКРЫТЬ ПРОЕКТ",
+	"FEATURED CASE / 01": "ГЛАВНЫЙ ПРОЕКТ / 01",
+	"FEATURED PROJECT — E-CATALOG": "ГЛАВНЫЙ ПРОЕКТ — E-CATALOG",
+	"SMART.": "УМНО.",
+	"FAST.": "БЫСТРО.",
+	"SIMPLE.": "ПРОСТО.",
+	"A product discovery concept that makes complex choices feel simple. A focused catalog experience, designed around the way people search.": "Концепция каталога, которая упрощает сложный выбор. Удобный поиск товаров, построенный вокруг потребностей человека.",
+	TECHNOLOGIES: "ТЕХНОЛОГИИ",
+	"LIVE DEMO": "О ПРОЕКТЕ",
+	"YEARS LEARNING": "ГОДА ОБУЧЕНИЯ",
+	PASSION: "УВЛЕЧЁННОСТЬ",
+	"HAVE SOMETHING IN MIND?": "ЕСТЬ ИДЕЯ?",
+	"LET'S": "ДАВАЙТЕ",
+	BUILD: "СОЗДАДИМ",
+	"SOMETHING.": "ЧТО-ТО НОВОЕ.",
+	"A website, a photo shoot or a video?": "Сайт, фотосессия или видео?",
+	"Let's turn it into reality.": "Давайте воплотим вашу идею.",
+	EMAIL: "ПОЧТА",
+	"Link coming soon": "Ссылка скоро появится",
+	"GET IN TOUCH": "НАПИСАТЬ МНЕ",
+	"For websites, photo shoots, filming and video editing.": "Создание сайтов, фото- и видеосъёмка, монтаж.",
+	"Web Developer / Designer / Video Maker": "Веб-разработчик / Дизайнер / Видеограф",
+	"Digital experiences. Visual stories.": "Цифровые проекты. Визуальные истории.",
+	NAVIGATION: "НАВИГАЦИЯ",
+	SOCIAL: "СОЦСЕТИ",
+	INFO: "ИНФОРМАЦИЯ",
+	"Based in Europe": "Нахожусь в Европе",
+	"Available for projects": "Открыт к проектам",
+	"BACK TO TOP ↑": "НАВЕРХ ↑",
+	"DESIGNED & DEVELOPED BY QWELSKW": "ДИЗАЙН И РАЗРАБОТКА — QWELSKW",
+	"EXPLORE THE WORK": "НАЙДИТЕ РАБОТУ",
+	"FIND A PROJECT.": "ПОИСК ПРОЕКТА.",
+	"Search by name or technology": "Поиск по названию или технологии",
+	"Try JavaScript or E-Catalog…": "Например, JavaScript или E-Catalog…",
+	"No projects found. Try “JavaScript” or “Vue”.": "Ничего не найдено. Попробуйте JavaScript или Vue.",
+	"ABOUT ME": "ОБО МНЕ",
+	"THOUGHTFUL BY DESIGN.": "ОСМЫСЛЕННО В КАЖДОЙ ДЕТАЛИ.",
+	"I'm Qwelskw, a web developer, designer and video maker based in Europe. I turn ideas into digital experiences and visual stories — from the first sketch to the final frame.": "Я Qwelskw — веб-разработчик, дизайнер и видеограф из Европы. Превращаю идеи в цифровые проекты и визуальные истории — от первого эскиза до последнего кадра.",
+	"My work brings together three disciplines: building responsive websites, designing clear and expressive visuals, and shaping stories through video editing and motion. I approach each medium with the same attention to detail.": "Создаю адаптивные сайты и выразительный дизайн, занимаюсь фото- и видеосъёмкой, монтажом и анимацией. В каждом направлении уделяю внимание деталям.",
+	"My approach is simple: understand the idea, choose the right medium and refine every detail — whether it is an interaction, a composition or a cut.": "Мой подход прост: понять идею, выбрать подходящий формат и проработать каждую деталь — взаимодействие, композицию или монтажный переход.",
+	"Live demo and source code will be linked when this project is published.": "Ссылки на готовый проект и исходный код появятся после публикации.",
+	"LET'S CONNECT": "БУДЕМ НА СВЯЗИ",
+	"TELEGRAM.": "TELEGRAM.",
+	"Qwelskw's Telegram profile hasn't been added yet.": "Ссылка на Telegram пока не добавлена.",
+	"Check back soon for contact details and new project updates.": "Пока можно связаться по почте или через Instagram.",
+	"A product discovery concept for a tire catalog. The interface explores natural-language search, clear product comparisons and a focused path from browsing to finding the right fit.": "Концепция каталога шин: поиск на естественном языке, наглядное сравнение товаров и удобный путь к подходящему выбору.",
+	"The proposed stack connects a Vue interface to a searchable product database and an AI-assisted discovery layer.": "Предлагаемая архитектура связывает интерфейс Vue, базу товаров и поиск с поддержкой ИИ.",
+	"A music player concept built around a distraction-free listening experience. Album artwork, a clear playback hierarchy and a responsive library give the music room to breathe.": "Концепция музыкального плеера без отвлекающих деталей: обложки альбомов, понятное управление и адаптивная библиотека.",
+	"The design explores playlist navigation, track discovery and accessible playback controls.": "Проект исследует навигацию по плейлистам, поиск музыки и доступное управление воспроизведением.",
+	"A full stack application concept bringing a structured backend and a clear frontend together. The focus is predictable navigation and readable information.": "Концепция full stack приложения с продуманным сервером и понятным интерфейсом. В центре внимания — удобная навигация и читаемость.",
+	"The proposed architecture uses a .NET API, C# business logic and a SQL data layer.": "Предлагаемая архитектура использует API на .NET, логику на C# и базу данных SQL.",
+	"A collection of interface explorations: typography, layout, motion and small interactions. A space to question familiar patterns and make the web feel more considered.": "Коллекция экспериментов с типографикой, сеткой, движением и небольшими взаимодействиями. Поиск новых решений для привычных интерфейсов.",
+	"Built around browser-native capabilities, responsive CSS and lightweight JavaScript.": "Основано на возможностях браузера, адаптивном CSS и лёгком JavaScript.",
+	"Main navigation": "Основная навигация",
+	Language: "Язык",
+	"Search projects": "Поиск проектов",
+	"Open navigation": "Открыть меню",
+	"Close navigation": "Закрыть меню",
+	"Close dialog": "Закрыть окно",
+	"Close search": "Закрыть поиск",
+	"What I do": "Услуги",
+	"Tools and skills": "Инструменты и навыки",
+	"Project categories": "Категории проектов",
+	"Portfolio in numbers": "Портфолио в цифрах",
+	"Contact Qwelskw": "Связаться с Qwelskw",
+	"Qwelskw Portfolio home": "Портфолио Qwelskw — главная",
+	"Black and white editorial portrait of a creative professional": "Чёрно-белый творческий портрет",
+	"Cinematic monochrome portrait at a creative workspace": "Чёрно-белый портрет за работой",
+	"E-Catalog product discovery concept": "Концепция каталога E-Catalog",
+	"LET’S DISCUSS YOUR PROJECT": "ОБСУДИМ ВАШ ПРОЕКТ",
+	Service: "Услуга",
+	"Choose a service": "Выберите услугу",
+	"Website development": "Создание сайта",
+	"Video filming": "Видеосъёмка",
+	"Video editing": "Видеомонтаж",
+	Photography: "Фотоуслуги",
+	"Tell me about your project": "Расскажите о задаче",
+	"How can I reach you?": "Как с вами связаться?",
+	"Email, Telegram or phone": "Почта, Telegram или телефон",
+	"Your details are used only to respond to this request.": "Ваши контакты нужны только для ответа на эту заявку.",
+	"SEND REQUEST": "ОТПРАВИТЬ ЗАЯВКУ",
+	"VIEW RESULT": "СМОТРЕТЬ РЕЗУЛЬТАТ",
+	"Sending…": "Отправляю…",
+	"Request sent. I’ll get back to you using the contact you provided.": "Заявка отправлена. Я отвечу по указанному вами контакту.",
+	"Could not send. Please try again or contact me directly.": "Не удалось отправить. Попробуйте ещё раз или напишите мне напрямую."
 };
 //#endregion
 //#region server/worker.js
@@ -235,11 +388,14 @@ async function body(request, max = 1e5) {
 		bytes.set(chunk, offset);
 		offset += chunk.length;
 	}
+	let value;
 	try {
-		return JSON.parse(new TextDecoder().decode(bytes));
+		value = JSON.parse(new TextDecoder().decode(bytes));
 	} catch {
 		fail("Invalid JSON");
 	}
+	if (!value || Array.isArray(value) || typeof value !== "object") fail("Expected a JSON object");
+	return value;
 }
 async function upload(request, env) {
 	const type = request.headers.get("Content-Type")?.split(";")[0];
@@ -349,6 +505,7 @@ async function handle(request, env) {
 			"Content-Security-Policy": "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
 		} });
 		if (method !== "GET") sameOrigin(request);
+		if (path === "/api/admin/copy-defaults" && method === "GET") return json(copy_defaults_default);
 		if (path === "/api/admin/session") return json({ email: user.email });
 		if (path === "/api/admin/projects" && method === "GET") return json((await stmt(env, "SELECT * FROM projects ORDER BY position,id").all()).results.map((r) => ({
 			...JSON.parse(r.data),

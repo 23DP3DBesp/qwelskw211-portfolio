@@ -3,7 +3,7 @@
 (async () => {
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let site;
-try { const response = await fetch('/api/content'); if (!response.ok) throw new Error(); site = await response.json(); }
+try { site = await portfolioAPI('/api/content'); if (!Array.isArray(site.projects) || !site.settings?.contacts) throw new Error(); }
 catch { const message=document.createElement('p'); message.className='content-error'; message.textContent='Projects are temporarily unavailable. / Проекты временно недоступны.'; document.querySelector('#project-grid').before(message); site={projects:[],settings:{contacts:{email:'qwelskw211@gmail.com',telegram:'https://t.me/qwelskw211',instagram:'https://www.instagram.com/qwelskw211/',github:'https://github.com/23DP3DBesp'},copy:{}}}; }
 const profile=site.settings.contacts;
 window.setPortfolioCopy(site.settings.copy);

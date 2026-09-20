@@ -1,6 +1,7 @@
 import seed from './seed.json';
 import adminHTML from '../admin/index.html?raw';
 import defaults from './default-settings.json';
+import copyDefaults from '../assets/copy-defaults.json';
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const stmt=(env,sql,...args)=>env.DB.prepare(sql).bind(...args);
@@ -48,7 +49,8 @@ async function body(request,max=100000){
  const chunks=[];let size=0;
  while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max){await reader.cancel();fail('Request too large',413);}chunks.push(value);}
  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
- try{return JSON.parse(new TextDecoder().decode(bytes));}catch{fail('Invalid JSON');}
+ let value;try{value=JSON.parse(new TextDecoder().decode(bytes));}catch{fail('Invalid JSON');}
+ if(!value||Array.isArray(value)||typeof value!=='object')fail('Expected a JSON object');return value;
 }
 async function upload(request,env){
  const type=request.headers.get('Content-Type')?.split(';')[0];
@@ -102,6 +104,7 @@ async function handle(request,env){
  return new Response('Доступ только владельцу сайта. Войдите в свой аккаунт ChatGPT.',{status:403,headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}});}
  if(path==='/admin'||path==='/admin/')return new Response(adminHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"}});
  if(method!=='GET')sameOrigin(request);
+ if(path==='/api/admin/copy-defaults'&&method==='GET')return json(copyDefaults);
  if(path==='/api/admin/session')return json({email:user.email});
  if(path==='/api/admin/projects'&&method==='GET'){const r=await stmt(env,'SELECT * FROM projects ORDER BY position,id').all();return json(r.results.map(r=>({...JSON.parse(r.data),revision:r.revision})));}
  if(path==='/api/admin/projects'&&method==='POST'){

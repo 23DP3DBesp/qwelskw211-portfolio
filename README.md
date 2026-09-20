@@ -21,10 +21,12 @@ Images: JPEG, PNG, WebP, up to 10 MB each. Galleries: 24 images. SVG uploads are
 
 ## Development
 
-Requires Node and npm. `npm ci`, `npm run db:generate` after schema changes, then `npm run build` and `npm run dev`.
+Requires Node and npm. `npm ci`, `npm run db:generate` after schema changes, then `npm run dev`. Development and tests rebuild automatically to avoid serving stale output. Use `npm run build` for a production build.
 
 Local preview runs at port 4173 with persistent local D1/R2 state in ignored `.wrangler/`. It is anonymous by default: production login is managed by Sites. `npm test` uses an isolated Miniflare environment to test verified owner headers, rejected callers, CSRF, draft media access, revision conflicts and form rate limiting. Test identity headers are never a production login mechanism.
 
 Production settings: `ADMIN_OWNER_EMAIL` is a server-side secret configured in Sites. Logical bindings are `DB` and `MEDIA` in `.openai/hosting.json`. Drizzle migrations under `drizzle/` are schema-only; applied migrations are immutable. The first request seeds the original project concepts and contact details exactly once. Later deployments preserve edited data.
 
 `dist/` is generated output and is rebuilt completely. `server/seed.json` contains only initial concepts, not the live source of truth. Content changes made in admin are stored in D1, image bytes in R2, and language preferences only in local browser storage.
+
+All browser API requests validate JSON responses and reject sign-in redirects. Reload the page to sign in again after session expiry. Editor copy defaults are served by `/api/admin/copy-defaults`; inquiry success requires an explicit `{ok:true}` response.
