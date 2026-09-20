@@ -102,7 +102,11 @@ async function handle(request,env){
  if(!user){if(path.startsWith('/api/'))return json({error:'Owner access required / Доступ только владельцу'},request.headers.get('oai-authenticated-user-id')?403:401);
  if(!request.headers.get('oai-authenticated-user-id'))return Response.redirect(`${url.origin}/signin-with-chatgpt?return_to=%2Fadmin`,302);
  return new Response('Доступ только владельцу сайта. Войдите в свой аккаунт ChatGPT.',{status:403,headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}});}
- if(path==='/admin'||path==='/admin/')return new Response(adminHTML,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"}});
+ if(path==='/admin'||path==='/admin/'){
+ const [rows,setting]=await Promise.all([stmt(env,'SELECT * FROM projects ORDER BY position,id').all(),stmt(env,'SELECT * FROM settings WHERE id=1').first()]);
+ const bootstrap=JSON.stringify({session:{email:user.email},projects:rows.results.map(r=>({...JSON.parse(r.data),revision:r.revision})),settings:{...JSON.parse(setting.data),revision:setting.revision},copyDefaults}).replace(/</g,'\\u003c');
+ return new Response(adminHTML.replace('<!--ADMIN_BOOTSTRAP-->',()=>`<script type="application/json" id="admin-bootstrap">${bootstrap}</script>`),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"}});
+ }
  if(method!=='GET')sameOrigin(request);
  if(path==='/api/admin/copy-defaults'&&method==='GET')return json(copyDefaults);
  if(path==='/api/admin/session')return json({email:user.email});

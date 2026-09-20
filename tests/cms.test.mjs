@@ -9,6 +9,15 @@ async function call(path,{method='GET',data,headers={}}={}){return mf.dispatchFe
 before(async()=>{mf=new Miniflare({modules:true,scriptPath:'dist/server/index.js',d1Databases:['DB'],r2Buckets:['MEDIA'],bindings:{ADMIN_OWNER_EMAIL:'owner@example.test'},assets:{directory:'dist/client',binding:'ASSETS',routerConfig:{has_user_worker:true}}});const db=await mf.getD1Database('DB');for(const name of (await fs.readdir('drizzle')).filter(x=>x.endsWith('.sql')).sort()){for(const sql of (await fs.readFile('drizzle/'+name,'utf8')).split('--> statement-breakpoint').map(x=>x.trim()).filter(Boolean))await db.prepare(sql).run();}});
 after(async()=>{await mf?.dispose();});
 
+test('owner page includes initial data and revisions without extra browser API calls',async()=>{
+ const response=await call('/admin',{headers:owner});assert.equal(response.status,200);
+ assert.equal(response.headers.get('Cache-Control'),'no-store');
+ const html=await response.text();const match=html.match(/<script type="application\/json" id="admin-bootstrap">([\s\S]*?)<\/script>/);
+ assert.ok(match);assert.ok(!match[1].includes('<'));
+ const data=JSON.parse(match[1]);assert.equal(data.session.email,owner['oai-authenticated-user-email']);
+ assert.ok(data.projects.length);assert.ok(data.projects[0].revision);assert.ok(data.settings.revision);assert.ok(Object.keys(data.copyDefaults).length);
+});
+
 test('API routes return JSON, including editor copy and missing endpoints',async()=>{
  for(const [path,status,headers] of [['/api/content',200,{}],['/api/admin/copy-defaults',200,owner],['/api/missing',404,{}]]){
   const response=await call(path,{headers});assert.equal(response.status,status);assert.match(response.headers.get('Content-Type'),/application\/json/);assert.ok(await response.json());
