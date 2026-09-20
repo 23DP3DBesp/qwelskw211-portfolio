@@ -1,52 +1,15 @@
 "use strict";
 // Replace these values when personal contact links are ready.
-const profile = { telegram: "https://t.me/qwelskw211", email: "qwelskw211@gmail.com", github: "https://github.com/23DP3DBesp", instagram: "https://www.instagram.com/qwelskw211/" };
-const projects = [
-  {
-    category: "web",
-    name: "E-CATALOG",
-    description: "AI powered product catalog",
-    tech: ["Vue", "JavaScript", "Database", "AI"],
-    image: "assets/images/project-01.jpg",
-    story:
-      "A product discovery concept for a tire catalog. The interface explores natural-language search, clear product comparisons and a focused path from browsing to finding the right fit.",
-    detail:
-      "The proposed stack connects a Vue interface to a searchable product database and an AI-assisted discovery layer.",
-  },
-  {
-    category: "web",
-    name: "MUSIC PLAYER",
-    description: "Modern web music experience",
-    tech: ["JavaScript", "API", "UI"],
-    image: "assets/images/project-02.jpg",
-    story:
-      "A music player concept built around a distraction-free listening experience. Album artwork, a clear playback hierarchy and a responsive library give the music room to breathe.",
-    detail:
-      "The design explores playlist navigation, track discovery and accessible playback controls.",
-  },
-  {
-    category: "web",
-    name: "WEB APPLICATION",
-    description: "Full stack project",
-    tech: ["C#", ".NET", "SQL"],
-    image: "assets/images/project-03.jpg",
-    story:
-      "A full stack application concept bringing a structured backend and a clear frontend together. The focus is predictable navigation and readable information.",
-    detail:
-      "The proposed architecture uses a .NET API, C# business logic and a SQL data layer.",
-  },
-  {
-    category: "design",
-    name: "EXPERIMENTS",
-    description: "UI and frontend experiments",
-    tech: ["HTML", "CSS", "JavaScript"],
-    image: "assets/images/project-04.jpg",
-    story:
-      "A collection of interface explorations: typography, layout, motion and small interactions. A space to question familiar patterns and make the web feel more considered.",
-    detail:
-      "Built around browser-native capabilities, responsive CSS and lightweight JavaScript.",
-  },
-];
+(async () => {
+const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let site;
+try { const response = await fetch('/api/content'); if (!response.ok) throw new Error(); site = await response.json(); }
+catch { const message=document.createElement('p'); message.className='content-error'; message.textContent='Projects are temporarily unavailable. / Проекты временно недоступны.'; document.querySelector('#project-grid').before(message); site={projects:[],settings:{contacts:{email:'qwelskw211@gmail.com',telegram:'https://t.me/qwelskw211',instagram:'https://www.instagram.com/qwelskw211/',github:'https://github.com/23DP3DBesp'},copy:{}}}; }
+const profile=site.settings.contacts;
+window.setPortfolioCopy(site.settings.copy);
+const localized=value => value?.[window.portfolioLanguage] || value?.en || value?.ru || '';
+const projects=site.projects.map(p=>({...p,name:p.title.en,image:p.cover,tech:typeof p.tech==='string'?p.tech.split(' / '):p.tech}));
+document.querySelectorAll('.contact-copy dd [data-social]').forEach(button=>{const key=button.dataset.social.toLowerCase();button.setAttribute('data-cms','');button.textContent=profile[key]||'—';});
 // Keep each icon next to its label so changing the order cannot mismatch them.
 const skills = [
   { title: "HTML / CSS / VUE", description: "Structure & style", icon: "web" },
@@ -62,12 +25,12 @@ document.querySelector(".skills").innerHTML = skills
       `<div class="skill"><img class="skill-icon" src="assets/icons/${icon}.svg" alt="" aria-hidden="true" width="28" height="28"><div><h3>${title}</h3><p>${description}</p></div></div>`,
   )
   .join("");
-document.querySelector("#project-grid").innerHTML = projects
-  .map(
-    (p, i) =>
-      `<article class="project-card" data-category="${p.category}"><div class="project-image"><img src="${p.image}" alt="${p.name} concept preview" loading="lazy"></div><div class="project-body"><span class="project-index">PROJECT 0${i + 1}</span><h3>${p.name}</h3><p>${p.description}</p><div class="project-tech">${p.tech.join(" / ")}</div><button data-project="${i}" aria-label="View ${p.name}">VIEW PROJECT <span>→</span></button></div></article>`,
-  )
-  .join("");
+function renderProjects() {
+ document.querySelector('#project-grid').innerHTML=projects.map((p,i)=>`<article class="project-card is-visible" data-cms data-category="${p.category}"><div class="project-image"><img src="${escapeHTML(p.cover)}" alt="${escapeHTML(localized(p.title))}" loading="lazy"></div><div class="project-body"><span class="project-index">${p.category.toUpperCase()} / ${String(i+1).padStart(2,'0')}</span><h3>${escapeHTML(localized(p.title))}</h3><p>${escapeHTML(localized(p.description))}</p><div class="project-tech">${escapeHTML(p.tech.join(' / '))}</div><a class="project-open" href="/work/?id=${encodeURIComponent(p.id)}&lang=${window.portfolioLanguage}">${window.portfolioLanguage==='ru'?'СМОТРЕТЬ РЕЗУЛЬТАТ':'VIEW RESULT'} <span>→</span></a></div></article>`).join('');
+ const feature=document.querySelector('.featured');const p=projects[0];feature.hidden=!p;
+ if(p){feature.querySelector('img').src=p.cover;feature.querySelector('img').alt=localized(p.title);feature.querySelector('.featured-copy>.eyebrow').textContent=localized(p.title);feature.querySelector('.featured-copy>.eyebrow').setAttribute('data-cms','');const description=feature.querySelector('.featured-copy>p:not(.eyebrow):not(.tech-line)');description.textContent=localized(p.description);description.setAttribute('data-cms','');feature.querySelector('.tech-line').textContent=p.tech.join(' / ');}
+}
+renderProjects();
 const filterButtons = document.querySelectorAll("[data-filter]");
 function filterProjects(category) {
   let count = 0;
@@ -76,12 +39,14 @@ function filterProjects(category) {
     if (!card.hidden) { count++; card.classList.add("is-visible"); }
   });
   filterButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === category)));
-  document.querySelector("#project-empty").hidden = count !== 0;
+  const empty=document.querySelector("#project-empty");empty.hidden = count !== 0;
+  empty.setAttribute('data-cms','');
+  if (!count) { const ru=window.portfolioLanguage==='ru';empty.querySelector('.eyebrow').textContent=category==='all'?(ru?'ПРОЕКТЫ':'PROJECTS'):category.toUpperCase();empty.querySelector('h3').textContent=ru?'НОВЫЕ РАБОТЫ СКОРО.':'NEW WORK IS COMING.';empty.querySelector('p:not(.eyebrow)').textContent=ru?'Работы появятся здесь после публикации. Обсудим ваш проект?':'Work will appear here once published. Have a project in mind?';empty.querySelector('a').textContent=ru?'ОБСУДИМ ПРОЕКТ →':'LET’S TALK →'; }
   document.querySelector("#project-count").textContent = window.portfolioLanguage === "ru" ? `Работ: ${count}` : `Projects: ${count}`;
 }
 filterButtons.forEach(button => button.addEventListener("click", () => filterProjects(button.dataset.filter)));
 document.querySelector('.section-heading a').addEventListener('click', () => filterProjects('all'));
-document.addEventListener('languagechange', () => filterProjects(document.querySelector('[data-filter][aria-pressed="true"]').dataset.filter));
+document.addEventListener('languagechange', () => { renderProjects(); filterProjects(document.querySelector('[data-filter][aria-pressed="true"]').dataset.filter); });
 filterProjects('all');
 const menu = document.querySelector(".menu-toggle"),
   nav = document.querySelector(".navigation");
@@ -113,12 +78,7 @@ function showDetail(html) {
   content.innerHTML = html;
   detail.showModal();
 }
-function showProject(i) {
-  const p = projects[i];
-  showDetail(
-    `<img class="dialog-image" src="${p.image}" alt="${p.name} concept"><p class="eyebrow">PROJECT 0${i + 1} / CONCEPT STUDY</p><h2 id="dialog-title">${p.name}</h2><p>${p.story}</p><p>${p.detail}</p><p class="eyebrow">${p.tech.join(" / ")}</p><p>Live demo and source code will be linked when this project is published.</p>`,
-  );
-}
+function showProject(i) { const p=projects[i];if(p) location.href=`/work/?id=${encodeURIComponent(p.id)}&lang=${window.portfolioLanguage}`; }
 document.addEventListener("click", (e) => {
   const project = e.target.closest("[data-project]");
   if (project) showProject(Number(project.dataset.project));
@@ -166,13 +126,13 @@ function renderSearch() {
   const matches = projects
     .map((p, i) => ({ p, i }))
     .filter(({ p }) =>
-      [p.name, p.description, window.translatePortfolio(p.description), p.category, ...p.tech].join(" ").toLowerCase().includes(q),
+      [p.name, localized(p.title), localized(p.description), p.category, ...p.tech].join(" ").toLowerCase().includes(q),
     );
   document.querySelector("#search-results").innerHTML = matches.length
     ? matches
         .map(
           ({ p, i }) =>
-            `<button class="search-result" data-project="${i}"><span>${p.name} ↗</span><small>${p.tech.join(" / ")}</small></button>`,
+            `<button class="search-result" data-project="${i}"><span>${escapeHTML(localized(p.title))} ↗</span><small>${escapeHTML(p.tech.join(" / "))}</small></button>`,
         )
         .join("")
     : "<p>No projects found. Try “JavaScript” or “Vue”.</p>";
@@ -205,3 +165,5 @@ if ("IntersectionObserver" in window) {
     .querySelectorAll(".fade-up,.reveal,.project-card")
     .forEach((el) => observer.observe(el));
 }
+
+})();

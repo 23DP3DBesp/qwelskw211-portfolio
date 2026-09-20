@@ -48,9 +48,14 @@ const russianCopy = {
   "Main navigation":"Основная навигация", "Language":"Язык", "Search projects":"Поиск проектов", "Open navigation":"Открыть меню", "Close navigation":"Закрыть меню", "Close dialog":"Закрыть окно", "Close search":"Закрыть поиск", "What I do":"Услуги", "Tools and skills":"Инструменты и навыки", "Project categories":"Категории проектов", "Portfolio in numbers":"Портфолио в цифрах", "Contact Qwelskw":"Связаться с Qwelskw", "Qwelskw Portfolio home":"Портфолио Qwelskw — главная",
   "Black and white editorial portrait of a creative professional":"Чёрно-белый творческий портрет", "Cinematic monochrome portrait at a creative workspace":"Чёрно-белый портрет за работой", "E-Catalog product discovery concept":"Концепция каталога E-Catalog"
 };
+Object.assign(russianCopy, {
+  "LET’S DISCUSS YOUR PROJECT":"ОБСУДИМ ВАШ ПРОЕКТ", "Service":"Услуга", "Choose a service":"Выберите услугу", "Website development":"Создание сайта", "Video filming":"Видеосъёмка", "Video editing":"Видеомонтаж", "Photography":"Фотоуслуги", "Tell me about your project":"Расскажите о задаче", "How can I reach you?":"Как с вами связаться?", "Email, Telegram or phone":"Почта, Telegram или телефон", "Your details are used only to respond to this request.":"Ваши контакты нужны только для ответа на эту заявку.", "SEND REQUEST":"ОТПРАВИТЬ ЗАЯВКУ", "VIEW RESULT":"СМОТРЕТЬ РЕЗУЛЬТАТ", "Sending…":"Отправляю…", "Request sent. I’ll get back to you using the contact you provided.":"Заявка отправлена. Я отвечу по указанному вами контакту.", "Could not send. Please try again or contact me directly.":"Не удалось отправить. Попробуйте ещё раз или напишите мне напрямую."
+});
 const normalizeCopy = text => text.replace(/\s+/g, " ").trim();
+let contentOverrides = {};
 function translateCopy(text) {
   const key = normalizeCopy(text);
+  if (contentOverrides[key]?.ru) return contentOverrides[key].ru;
   if (russianCopy[key]) return russianCopy[key];
   return key.replace(/^PROJECT (\d+)( \/ CONCEPT STUDY)?$/, (_, n, concept) => `ПРОЕКТ ${n}${concept ? " / КОНЦЕПЦИЯ" : ""}`)
     .replace(/^View /, "Открыть ").replace(/ concept preview$/, " — концепция").replace(/ concept$/, " — концепция");
@@ -65,12 +70,13 @@ function translatePage() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
     const node = walker.currentNode;
-    if (node.parentElement.closest('script,style,[data-lang],#project-count,input')) continue;
+    if (node.parentElement.closest('script,style,[data-lang],[data-cms],#project-count,input,textarea')) continue;
     if (!sourceNodes.has(node)) sourceNodes.set(node, node.nodeValue);
     const original = sourceNodes.get(node);
-    node.nodeValue = language === "ru" && original.trim() ? translateCopy(original) : original;
+    node.nodeValue = language === "ru" && original.trim() ? translateCopy(original) : (contentOverrides[normalizeCopy(original)]?.en || original);
   }
   document.querySelectorAll('[aria-label],[placeholder],img[alt]').forEach(el => {
+    if (el.closest('[data-cms]')) return;
     if (!sourceAttributes.has(el)) sourceAttributes.set(el, {});
     const saved = sourceAttributes.get(el);
     for (const attr of ['aria-label','placeholder','alt']) {
@@ -99,3 +105,5 @@ document.querySelectorAll('[data-lang]').forEach(button => button.addEventListen
   document.dispatchEvent(new Event('languagechange'));
 }));
 translatePage();
+
+window.setPortfolioCopy = copy => { contentOverrides = copy || {}; translatePage(); };

@@ -1,0 +1,448 @@
+//#region server/seed.json
+var seed_default = [
+	{
+		"id": "e-catalog",
+		"category": "web",
+		"status": "published",
+		"position": 0,
+		"title": {
+			"en": "E-CATALOG",
+			"ru": "E-CATALOG"
+		},
+		"description": {
+			"en": "AI powered product catalog",
+			"ru": "Каталог товаров с ИИ"
+		},
+		"result": {
+			"en": "AI powered product catalog",
+			"ru": "Каталог товаров с ИИ"
+		},
+		"cover": "/assets/images/project-01.jpg",
+		"gallery": [],
+		"video": "",
+		"link": "",
+		"tech": "Vue / JavaScript / Database / AI",
+		"concept": true
+	},
+	{
+		"id": "music-player",
+		"category": "web",
+		"status": "published",
+		"position": 1,
+		"title": {
+			"en": "MUSIC PLAYER",
+			"ru": "MUSIC PLAYER"
+		},
+		"description": {
+			"en": "Modern web music experience",
+			"ru": "Современный веб-плеер"
+		},
+		"result": {
+			"en": "Modern web music experience",
+			"ru": "Современный веб-плеер"
+		},
+		"cover": "/assets/images/project-02.jpg",
+		"gallery": [],
+		"video": "",
+		"link": "",
+		"tech": "JavaScript / API / UI",
+		"concept": true
+	},
+	{
+		"id": "web-application",
+		"category": "web",
+		"status": "published",
+		"position": 2,
+		"title": {
+			"en": "WEB APPLICATION",
+			"ru": "WEB APPLICATION"
+		},
+		"description": {
+			"en": "Full stack project",
+			"ru": "Full stack приложение"
+		},
+		"result": {
+			"en": "Full stack project",
+			"ru": "Full stack приложение"
+		},
+		"cover": "/assets/images/project-03.jpg",
+		"gallery": [],
+		"video": "",
+		"link": "",
+		"tech": "C# / .NET / SQL",
+		"concept": true
+	},
+	{
+		"id": "experiments",
+		"category": "design",
+		"status": "published",
+		"position": 3,
+		"title": {
+			"en": "EXPERIMENTS",
+			"ru": "EXPERIMENTS"
+		},
+		"description": {
+			"en": "UI and frontend experiments",
+			"ru": "Эксперименты с интерфейсами"
+		},
+		"result": {
+			"en": "UI and frontend experiments",
+			"ru": "Эксперименты с интерфейсами"
+		},
+		"cover": "/assets/images/project-04.jpg",
+		"gallery": [],
+		"video": "",
+		"link": "",
+		"tech": "HTML / CSS / JavaScript",
+		"concept": true
+	}
+];
+//#endregion
+//#region admin/index.html?raw
+var admin_default = "<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>QWELSKW — Управление</title><link rel=\"stylesheet\" href=\"/css/admin.css\"><script src=\"/js/admin.js\" defer><\/script></head><body>\n<header class=\"admin-header\"><a href=\"/\">QWELSKW <small>PORTFOLIO</small></a><div><span id=\"account\"></span> <a href=\"/signout-with-chatgpt?return_to=/\">Выйти</a></div></header>\n<main class=\"admin-main\"><div class=\"admin-heading\"><div><p class=\"label\">ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА</p><h1>Управление сайтом</h1></div><a href=\"/\" target=\"_blank\" rel=\"noopener\">Открыть сайт ↗</a></div>\n<nav class=\"admin-tabs\" aria-label=\"Разделы\"><button data-tab=\"projects\" aria-pressed=\"true\">Проекты</button><button data-tab=\"settings\" aria-pressed=\"false\">Тексты, услуги и контакты</button><button data-tab=\"inquiries\" aria-pressed=\"false\">Заявки</button></nav>\n<p id=\"status\" role=\"status\" aria-live=\"polite\"></p>\n<section id=\"projects-panel\"><div class=\"section-line\"><h2>Работы</h2><button id=\"new-project\" class=\"primary\">Добавить проект</button></div><p class=\"hint\">Меньшее число в поле «Порядок» поднимает работу выше. Черновики и скрытые работы видны только вам.</p><div id=\"project-list\"></div></section>\n<section id=\"settings-panel\" hidden><h2>Контакты</h2><form id=\"settings-form\"><div id=\"contact-fields\" class=\"field-grid\"></div><h2>Тексты и услуги · EN / RU</h2><p class=\"hint\">Измените тексты первого экрана, услуг, разделов и кнопок. Исходный английский текст помогает найти нужное место. Пустое поле использует исходный текст.</p><label>Найти текст<input type=\"search\" id=\"copy-search\" placeholder=\"Например: VIDEO, съёмка, CONTACT\"></label><div id=\"copy-fields\"></div><div class=\"sticky-actions\"><button class=\"primary\" type=\"submit\">Сохранить тексты и контакты</button></div></form></section>\n<section id=\"inquiries-panel\" hidden><h2>Заявки</h2><p class=\"hint\">Новые обращения с формы на сайте. Они сохраняются здесь; автоматические письма не отправляются.</p><div id=\"inquiry-list\"></div></section>\n</main>\n<dialog id=\"editor\" aria-labelledby=\"editor-title\"><form id=\"project-form\"><div class=\"section-line\"><h2 id=\"editor-title\">Проект</h2><button type=\"button\" id=\"close-editor\" aria-label=\"Закрыть редактор\">×</button></div>\n<div class=\"field-grid\"><label>Адрес работы<input name=\"id\" required pattern=\"[a-z0-9][a-z0-9-]{0,79}\" maxlength=\"80\" placeholder=\"my-project\"><small>Латинские буквы, цифры и дефис. После сохранения не меняется.</small></label><label>Категория<select name=\"category\"><option value=\"web\">Web</option><option value=\"design\">Design / Photo</option><option value=\"video\">Video</option></select></label><label>Статус<select name=\"status\"><option value=\"draft\">Черновик — только мне</option><option value=\"published\">Опубликован</option><option value=\"hidden\">Скрыт — только мне</option></select></label><label>Порядок<input type=\"number\" name=\"position\" value=\"0\" min=\"0\" max=\"10000\" required></label></div>\n<div class=\"field-grid\"><label>Название · EN<input name=\"title_en\" maxlength=\"160\" required></label><label>Название · RU<input name=\"title_ru\" maxlength=\"160\"></label><label>Подпись карточки · EN<textarea name=\"description_en\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Подпись карточки · RU<textarea name=\"description_ru\" maxlength=\"500\" rows=\"2\"></textarea></label><label>Результат · EN<textarea name=\"result_en\" maxlength=\"6000\" rows=\"5\"></textarea></label><label>Результат · RU<textarea name=\"result_ru\" maxlength=\"6000\" rows=\"5\"></textarea></label></div>\n<label>Инструменты / технологии<input name=\"tech\" maxlength=\"300\" placeholder=\"Lightroom / Photoshop\"></label><label class=\"check\"><input type=\"checkbox\" name=\"concept\"> Это концепция, а не завершённая работа клиента</label>\n<h3>Обложка</h3><input type=\"hidden\" name=\"cover\"><label>Загрузить обложку · JPEG, PNG, WebP до 10 МБ<input id=\"cover-upload\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\"></label><img id=\"cover-preview\" class=\"cover-preview\" alt=\"Обложка\" hidden>\n<h3>Фотографии результата</h3><label>Добавить фотографии · до 24 в галерее<input id=\"gallery-upload\" type=\"file\" multiple accept=\"image/jpeg,image/png,image/webp\"></label><div id=\"gallery-editor\" class=\"gallery-editor\"></div>\n<div class=\"field-grid\"><label>Видео · ссылка на YouTube или Vimeo<input name=\"video\" type=\"url\" placeholder=\"https://www.youtube.com/watch?v=…\"></label><label>Ссылка на готовый сайт (необязательно)<input name=\"link\" type=\"url\" placeholder=\"https://…\"></label></div><p id=\"editor-status\" role=\"status\"></p><div class=\"sticky-actions\"><button type=\"submit\" class=\"primary\" id=\"save-project\">Сохранить</button><a id=\"preview-project\" href=\"#\" target=\"_blank\" rel=\"noopener\" hidden>Посмотреть сохранённую версию ↗</a></div></form></dialog>\n</body></html>\n";
+var default_settings_default = {
+	contacts: {
+		"telegram": "https://t.me/qwelskw211",
+		"email": "qwelskw211@gmail.com",
+		"github": "https://github.com/23DP3DBesp",
+		"instagram": "https://www.instagram.com/qwelskw211/"
+	},
+	copy: {}
+};
+//#endregion
+//#region server/worker.js
+var json = (data, status = 200) => new Response(JSON.stringify(data), {
+	status,
+	headers: {
+		"Content-Type": "application/json; charset=utf-8",
+		"Cache-Control": "no-store",
+		"X-Content-Type-Options": "nosniff"
+	}
+});
+var fail = (message, status = 400) => {
+	throw Object.assign(new Error(message), { status });
+};
+var stmt = (env, sql, ...args) => env.DB.prepare(sql).bind(...args);
+var now = () => (/* @__PURE__ */ new Date()).toISOString();
+var idPattern = /^[a-z0-9][a-z0-9-]{0,79}$/;
+function text(value, max = 5e3) {
+	if (typeof value !== "string" || value.length > max) fail("Invalid text / Некорректный текст");
+	return value.trim();
+}
+function bilingual(value, max) {
+	return {
+		en: text(value?.en ?? "", max),
+		ru: text(value?.ru ?? "", max)
+	};
+}
+function safeURL(value, { image = false, video = false } = {}) {
+	value = text(value ?? "", 2e3);
+	if (!value) return "";
+	if (image) {
+		if (/^\/(assets\/images\/[a-zA-Z0-9._-]+|media\/[a-z0-9-]+)$/.test(value)) return value;
+		fail("Upload an image / Загрузите изображение");
+	}
+	let u;
+	try {
+		u = new URL(value);
+	} catch {
+		fail("Invalid URL / Некорректная ссылка");
+	}
+	if (u.protocol !== "https:" || u.username || u.password) fail("Use an HTTPS link / Используйте HTTPS");
+	if (video && ![
+		"youtube.com",
+		"www.youtube.com",
+		"youtu.be",
+		"vimeo.com",
+		"www.vimeo.com"
+	].includes(u.hostname)) fail("Use a YouTube or Vimeo link");
+	return u.href;
+}
+function validateProject(value) {
+	const p = {
+		id: text(value.id, 80),
+		category: text(value.category, 16),
+		status: text(value.status, 16),
+		position: Number(value.position),
+		title: bilingual(value.title, 160),
+		description: bilingual(value.description, 500),
+		result: bilingual(value.result, 6e3),
+		cover: safeURL(value.cover, { image: true }),
+		gallery: [],
+		video: safeURL(value.video, { video: true }),
+		link: safeURL(value.link),
+		tech: text(value.tech ?? "", 300),
+		concept: value.concept === true
+	};
+	if (!idPattern.test(p.id) || ![
+		"web",
+		"design",
+		"video"
+	].includes(p.category) || ![
+		"draft",
+		"published",
+		"hidden"
+	].includes(p.status) || !Number.isInteger(p.position) || p.position < 0 || p.position > 1e4) fail("Invalid project fields / Проверьте поля проекта");
+	if (!Array.isArray(value.gallery) || value.gallery.length > 24) fail("Maximum 24 gallery images");
+	p.gallery = value.gallery.map((x) => safeURL(x, { image: true }));
+	if (p.status === "published" && (!p.title.en || !p.title.ru || !p.cover || !p.result.en && !p.video && !p.gallery.length)) fail("Publishing requires EN/RU titles, a cover and a result / Для публикации нужны названия EN/RU, обложка и результат");
+	return p;
+}
+async function init(env) {
+	if (await stmt(env, "SELECT id FROM settings WHERE id=1").first()) return;
+	const operations = seed_default.map((p) => stmt(env, "INSERT OR IGNORE INTO projects (id,data,status,position,revision,updated) SELECT ?,?,?,?,1,? WHERE NOT EXISTS (SELECT 1 FROM settings WHERE id=1)", p.id, JSON.stringify(p), p.status, p.position, now()));
+	operations.push(stmt(env, "INSERT OR IGNORE INTO settings (id,data,revision) VALUES (1,?,1)", JSON.stringify(default_settings_default)));
+	await env.DB.batch(operations);
+}
+async function identity(request, env) {
+	const id = request.headers.get("oai-authenticated-user-id"), email = request.headers.get("oai-authenticated-user-email");
+	if (!id || !email) return null;
+	const existing = await stmt(env, "SELECT user_id FROM owner WHERE id=1").first();
+	if (existing) return existing.user_id === id ? {
+		id,
+		email
+	} : null;
+	if (!env.ADMIN_OWNER_EMAIL || email.toLowerCase() !== env.ADMIN_OWNER_EMAIL.toLowerCase()) return null;
+	await stmt(env, "INSERT OR IGNORE INTO owner (id,user_id) VALUES (1,?)", id).run();
+	return (await stmt(env, "SELECT user_id FROM owner WHERE id=1").first())?.user_id === id ? {
+		id,
+		email
+	} : null;
+}
+function sameOrigin(request) {
+	if (request.headers.get("Origin") !== new URL(request.url).origin) fail("Origin rejected", 403);
+	if (request.headers.get("Sec-Fetch-Site") === "cross-site") fail("Cross-site request rejected", 403);
+}
+async function body(request, max = 1e5) {
+	if (Number(request.headers.get("Content-Length")) > max) fail("Request too large", 413);
+	const reader = request.body?.getReader();
+	if (!reader) fail("Missing body");
+	const chunks = [];
+	let size = 0;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		size += value.length;
+		if (size > max) {
+			await reader.cancel();
+			fail("Request too large", 413);
+		}
+		chunks.push(value);
+	}
+	const bytes = new Uint8Array(size);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.length;
+	}
+	try {
+		return JSON.parse(new TextDecoder().decode(bytes));
+	} catch {
+		fail("Invalid JSON");
+	}
+}
+async function upload(request, env) {
+	const type = request.headers.get("Content-Type")?.split(";")[0];
+	if (![
+		"image/jpeg",
+		"image/png",
+		"image/webp"
+	].includes(type)) fail("JPEG, PNG or WebP only");
+	if (Number(request.headers.get("Content-Length")) > 10485760) fail("Image limit: 10 MB", 413);
+	const reader = request.body?.getReader();
+	if (!reader) fail("Empty image");
+	let total = 0, chunks = [];
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		total += value.length;
+		if (total > 10485760) {
+			await reader.cancel();
+			fail("Image limit: 10 MB", 413);
+		}
+		chunks.push(value);
+	}
+	const bytes = new Uint8Array(total);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.length;
+	}
+	const png = bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
+	const jpg = bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+	const webp = new TextDecoder().decode(bytes.slice(0, 4)) === "RIFF" && new TextDecoder().decode(bytes.slice(8, 12)) === "WEBP";
+	if (!(type === "image/png" && png || type === "image/jpeg" && jpg || type === "image/webp" && webp)) fail("File content does not match image type");
+	const id = crypto.randomUUID();
+	await env.MEDIA.put(id, bytes, { httpMetadata: { contentType: type } });
+	try {
+		await stmt(env, "INSERT INTO media (id,type,name,created) VALUES (?,?,?,?)", id, type, "image", now()).run();
+	} catch (e) {
+		await env.MEDIA.delete(id);
+		throw e;
+	}
+	return json({ url: `/media/${id}` }, 201);
+}
+async function inquiry(request, env) {
+	sameOrigin(request);
+	const value = await body(request, 12e3);
+	if (value.website) return json({ ok: true });
+	const service = text(value.service, 50), description = text(value.description, 4e3), contact = text(value.contact, 300);
+	if (![
+		"web",
+		"design",
+		"filming",
+		"editing",
+		"photo"
+	].includes(service) || description.length < 10 || contact.length < 3) fail("Complete all fields / Заполните все поля");
+	const date = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10), ip = request.headers.get("CF-Connecting-IP") || "unknown";
+	const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${date}:${ip}`));
+	if ((await stmt(env, "INSERT INTO rate_limits (key,count,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count", Array.from(new Uint8Array(hash), (x) => x.toString(16).padStart(2, "0")).join(""), Date.now() + 864e5).first()).count > 5) fail("Please try tomorrow / Попробуйте завтра", 429);
+	await env.DB.batch([stmt(env, "INSERT INTO inquiries (id,service,description,contact,status,created) VALUES (?,?,?,?,?,?)", crypto.randomUUID(), service, description, contact, "new", now()), stmt(env, "DELETE FROM rate_limits WHERE expires < ?", Date.now())]);
+	return json({ ok: true }, 201);
+}
+async function handle(request, env) {
+	const url = new URL(request.url), path = url.pathname, method = request.method;
+	if (path.startsWith("/api/") || path.startsWith("/media/") || path === "/admin" || path.startsWith("/admin/")) {
+		if (!env.DB) fail("Database is unavailable", 503);
+		await init(env);
+	}
+	if (path === "/api/content" && method === "GET") {
+		const result = await stmt(env, "SELECT data FROM projects WHERE status='published' ORDER BY position,id").all();
+		const settings = await stmt(env, "SELECT data FROM settings WHERE id=1").first();
+		return json({
+			projects: result.results.map((r) => JSON.parse(r.data)),
+			settings: JSON.parse(settings.data)
+		});
+	}
+	if (path === "/api/inquiries" && method === "POST") return inquiry(request, env);
+	if (path.startsWith("/media/") && method === "GET") {
+		const key = path.slice(7);
+		if (!/^[a-f0-9-]{36}$/.test(key)) fail("Not found", 404);
+		if (!(await stmt(env, "SELECT data FROM projects WHERE status='published'").all()).results.some((r) => {
+			const p = JSON.parse(r.data);
+			return p.cover === path || p.gallery?.includes(path);
+		}) && !await identity(request, env)) fail("Not found", 404);
+		const object = await env.MEDIA.get(key);
+		if (!object) fail("Not found", 404);
+		return new Response(object.body, { headers: {
+			"Content-Type": object.httpMetadata?.contentType || "application/octet-stream",
+			"Cache-Control": "no-store",
+			"X-Content-Type-Options": "nosniff"
+		} });
+	}
+	if (path === "/admin" || path === "/admin/" || path.startsWith("/api/admin")) {
+		const user = await identity(request, env);
+		if (!user) {
+			if (path.startsWith("/api/")) return json({ error: "Owner access required / Доступ только владельцу" }, request.headers.get("oai-authenticated-user-id") ? 403 : 401);
+			if (!request.headers.get("oai-authenticated-user-id")) return Response.redirect(`${url.origin}/signin-with-chatgpt?return_to=%2Fadmin`, 302);
+			return new Response("Доступ только владельцу сайта. Войдите в свой аккаунт ChatGPT.", {
+				status: 403,
+				headers: {
+					"Content-Type": "text/plain; charset=utf-8",
+					"Cache-Control": "no-store"
+				}
+			});
+		}
+		if (path === "/admin" || path === "/admin/") return new Response(admin_default, { headers: {
+			"Content-Type": "text/html; charset=utf-8",
+			"Cache-Control": "no-store",
+			"Content-Security-Policy": "default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
+		} });
+		if (method !== "GET") sameOrigin(request);
+		if (path === "/api/admin/session") return json({ email: user.email });
+		if (path === "/api/admin/projects" && method === "GET") return json((await stmt(env, "SELECT * FROM projects ORDER BY position,id").all()).results.map((r) => ({
+			...JSON.parse(r.data),
+			revision: r.revision
+		})));
+		if (path === "/api/admin/projects" && method === "POST") {
+			const value = await body(request), p = validateProject(value);
+			const prior = await stmt(env, "SELECT revision FROM projects WHERE id=?", p.id).first();
+			if (prior) {
+				if (value.revision !== prior.revision) fail("Changed in another tab. Reload first. / Изменено в другой вкладке. Обновите страницу.", 409);
+				if (!(await stmt(env, "UPDATE projects SET data=?,status=?,position=?,revision=revision+1,updated=? WHERE id=? AND revision=?", JSON.stringify(p), p.status, p.position, now(), p.id, value.revision).run()).meta.changes) fail("Conflict / Конфликт изменений", 409);
+			} else {
+				if (value.revision) fail("Project missing", 409);
+				await stmt(env, "INSERT INTO projects (id,data,status,position,revision,updated) VALUES (?,?,?,?,1,?)", p.id, JSON.stringify(p), p.status, p.position, now()).run();
+			}
+			return json({ ok: true });
+		}
+		if (path === "/api/admin/settings" && method === "GET") {
+			const r = await stmt(env, "SELECT * FROM settings WHERE id=1").first();
+			return json({
+				...JSON.parse(r.data),
+				revision: r.revision
+			});
+		}
+		if (path === "/api/admin/settings" && method === "POST") {
+			const value = await body(request, 25e4);
+			const contacts = {};
+			for (const key of [
+				"telegram",
+				"instagram",
+				"github"
+			]) contacts[key] = safeURL(value.contacts?.[key]);
+			contacts.email = text(value.contacts?.email ?? "", 254);
+			if (contacts.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contacts.email)) fail("Invalid email");
+			const copy = {};
+			if (!value.copy || Array.isArray(value.copy) || typeof value.copy !== "object" || Object.keys(value.copy).length > 300) fail("Invalid copy");
+			for (const [key, val] of Object.entries(value.copy)) {
+				if (key.length > 7e3 || [
+					"__proto__",
+					"constructor",
+					"prototype"
+				].includes(key)) fail("Invalid key");
+				copy[key] = bilingual(val, 7e3);
+			}
+			if (!(await stmt(env, "UPDATE settings SET data=?,revision=revision+1 WHERE id=1 AND revision=?", JSON.stringify({
+				contacts,
+				copy
+			}), Number(value.revision)).run()).meta.changes) fail("Settings changed. Reload first. / Настройки изменились. Обновите страницу.", 409);
+			return json({ ok: true });
+		}
+		if (path === "/api/admin/upload" && method === "POST") return upload(request, env);
+		if (path === "/api/admin/inquiries" && method === "GET") return json((await stmt(env, "SELECT * FROM inquiries ORDER BY created DESC LIMIT 300").all()).results);
+		if (path === "/api/admin/inquiries" && method === "POST") {
+			const value = await body(request);
+			if (![
+				"new",
+				"read",
+				"done"
+			].includes(value.status)) fail("Invalid status");
+			await stmt(env, "UPDATE inquiries SET status=? WHERE id=?", value.status, text(value.id, 80)).run();
+			return json({ ok: true });
+		}
+		if (path.startsWith("/api/admin/projects/") && method === "GET") {
+			const r = await stmt(env, "SELECT data FROM projects WHERE id=?", path.split("/").pop()).first();
+			if (!r) fail("Not found", 404);
+			return json(JSON.parse(r.data));
+		}
+		fail("Not found", 404);
+	}
+	if (path.startsWith("/api/")) fail("Not found", 404);
+	if (path === "/work" || path === "/work/") return asset(request, env, "/work/index.html");
+	if (path.startsWith("/admin/")) fail("Not found", 404);
+	return asset(request, env, path === "/" ? "/index.html" : path);
+}
+async function asset(request, env, path, privatePage = false) {
+	if (!env.ASSETS) fail("Assets unavailable", 503);
+	const url = new URL(request.url);
+	url.pathname = path;
+	url.search = "";
+	const response = await env.ASSETS.fetch(new Request(url, request));
+	const result = new Response(response.body, response);
+	if (privatePage) result.headers.set("Cache-Control", "no-store");
+	return result;
+}
+var worker_default = { async fetch(request, env) {
+	try {
+		const raw = await handle(request, env);
+		const response = new Response(raw.body, raw);
+		response.headers.set("X-Content-Type-Options", "nosniff");
+		response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+		return response;
+	} catch (error) {
+		return json({ error: error.status ? error.message : "Server error / Ошибка сервера" }, error.status || 500);
+	}
+} };
+//#endregion
+export { worker_default as default, safeURL, validateProject };

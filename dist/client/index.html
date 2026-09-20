@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/responsive.css" />
     <script src="js/i18n.js" defer></script>
     <script src="js/main.js" defer></script>
+    <script src="js/inquiry.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -215,7 +216,7 @@
           <p class="tech-line">VUE / JS / AI / DATABASE</p>
           <div class="button-row">
             <button class="button" data-project="0">
-              LIVE DEMO <span>↗</span></button
+              VIEW RESULT <span>↗</span></button
             ><button class="text-link" data-social="GitHub">
               GITHUB <span>→</span>
             </button>
@@ -273,6 +274,17 @@
               GET IN TOUCH <span>→</span>
             </button>
             <p class="contact-note">For websites, photo shoots, filming and video editing.</p>
+            <form id="inquiry-form" class="inquiry-form">
+              <h3>LET’S DISCUSS YOUR PROJECT</h3>
+              <label>Service<select name="service" required><option value="">Choose a service</option><option value="web">Website development</option><option value="design">Design</option><option value="filming">Video filming</option><option value="editing">Video editing</option><option value="photo">Photography</option></select></label>
+              <label>Tell me about your project<textarea name="description" minlength="10" maxlength="4000" rows="4" required></textarea></label>
+              <label>How can I reach you?<input name="contact" maxlength="300" minlength="3" required placeholder="Email, Telegram or phone"></label>
+              <div class="form-trap" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+              <p class="inquiry-note">Your details are used only to respond to this request.</p>
+              <button class="button button-light" type="submit">SEND REQUEST <span>→</span></button>
+              <p id="inquiry-status" role="status" aria-live="polite"></p>
+            </form>
+
           </div>
         </div>
       </section>

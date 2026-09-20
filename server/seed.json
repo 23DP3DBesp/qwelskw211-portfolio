@@ -1,0 +1,98 @@
+[
+  {
+    "id": "e-catalog",
+    "category": "web",
+    "status": "published",
+    "position": 0,
+    "title": {
+      "en": "E-CATALOG",
+      "ru": "E-CATALOG"
+    },
+    "description": {
+      "en": "AI powered product catalog",
+      "ru": "Каталог товаров с ИИ"
+    },
+    "result": {
+      "en": "AI powered product catalog",
+      "ru": "Каталог товаров с ИИ"
+    },
+    "cover": "/assets/images/project-01.jpg",
+    "gallery": [],
+    "video": "",
+    "link": "",
+    "tech": "Vue / JavaScript / Database / AI",
+    "concept": true
+  },
+  {
+    "id": "music-player",
+    "category": "web",
+    "status": "published",
+    "position": 1,
+    "title": {
+      "en": "MUSIC PLAYER",
+      "ru": "MUSIC PLAYER"
+    },
+    "description": {
+      "en": "Modern web music experience",
+      "ru": "Современный веб-плеер"
+    },
+    "result": {
+      "en": "Modern web music experience",
+      "ru": "Современный веб-плеер"
+    },
+    "cover": "/assets/images/project-02.jpg",
+    "gallery": [],
+    "video": "",
+    "link": "",
+    "tech": "JavaScript / API / UI",
+    "concept": true
+  },
+  {
+    "id": "web-application",
+    "category": "web",
+    "status": "published",
+    "position": 2,
+    "title": {
+      "en": "WEB APPLICATION",
+      "ru": "WEB APPLICATION"
+    },
+    "description": {
+      "en": "Full stack project",
+      "ru": "Full stack приложение"
+    },
+    "result": {
+      "en": "Full stack project",
+      "ru": "Full stack приложение"
+    },
+    "cover": "/assets/images/project-03.jpg",
+    "gallery": [],
+    "video": "",
+    "link": "",
+    "tech": "C# / .NET / SQL",
+    "concept": true
+  },
+  {
+    "id": "experiments",
+    "category": "design",
+    "status": "published",
+    "position": 3,
+    "title": {
+      "en": "EXPERIMENTS",
+      "ru": "EXPERIMENTS"
+    },
+    "description": {
+      "en": "UI and frontend experiments",
+      "ru": "Эксперименты с интерфейсами"
+    },
+    "result": {
+      "en": "UI and frontend experiments",
+      "ru": "Эксперименты с интерфейсами"
+    },
+    "cover": "/assets/images/project-04.jpg",
+    "gallery": [],
+    "video": "",
+    "link": "",
+    "tech": "HTML / CSS / JavaScript",
+    "concept": true
+  }
+]
